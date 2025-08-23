@@ -63,6 +63,7 @@ export default function App() {
   const [userId, setUserId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [elementalData, setElementalData] = useState<any>(null);
+  const [completeBlueprintData, setCompleteBlueprintData] = useState<any>(null);
 
   // 生成或获取设备ID
   const generateDeviceId = (): string => {
@@ -225,7 +226,11 @@ export default function App() {
     }
   };
 
-  const handleElementalAnalysisComplete = () => {
+  const handleElementalAnalysisComplete = (completeData?: any) => {
+    if (completeData) {
+      console.log('🎉 接收到完整蓝图数据:', completeData);
+      setCompleteBlueprintData(completeData);
+    }
     setCurrentScreen("main-app");
   };
 

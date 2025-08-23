@@ -4,6 +4,7 @@ import { Button } from "./ui/button";
 import { motion } from "framer-motion";
 import { Sparkles, ArrowRight } from "lucide-react";
 import { ImageWithFallback } from './figma/ImageWithFallback';
+import { BlueprintApiService } from '../services/blueprintApi';
 
 interface UserProfile {
   gender?: string;
@@ -22,7 +23,7 @@ interface Element {
 
 interface ElementalAnalysisProps {
   userProfile: UserProfile;
-  onComplete: () => void;
+  onComplete: (completeBlueprintData?: any) => void; // 传递完整蓝图数据
   elementalData?: any; // 从后端API获取的五行分析数据
 }
 
@@ -113,12 +114,21 @@ const generateElementalProfile = (userProfile: UserProfile): Element[] => {
 // 将后端返回的五行数据转换为前端Element[]格式
 const convertBackendDataToFrontend = (backendData: any): Element[] => {
   try {
+    console.log('🔧 完整后端数据结构:', JSON.stringify(backendData, null, 2));
+    
     // 检查是否有quick_data.core_energy_field数据
     const quickData = backendData.quick_data;
+    console.log('🔧 quickData是否存在:', !!quickData);
+    console.log('🔧 quickData内容:', quickData);
+    
     const coreEnergyField = quickData?.core_energy_field;
+    console.log('🔧 coreEnergyField是否存在:', !!coreEnergyField);
+    console.log('🔧 coreEnergyField内容:', coreEnergyField);
     
     if (!coreEnergyField || !coreEnergyField.chart_data) {
       console.warn('⚠️ 后端数据中没有quick_data.core_energy_field.chart_data，使用本地算法');
+      console.warn('⚠️ coreEnergyField存在:', !!coreEnergyField);
+      console.warn('⚠️ chart_data存在:', !!coreEnergyField?.chart_data);
       return [];
     }
 
@@ -165,8 +175,54 @@ const convertBackendDataToFrontend = (backendData: any): Element[] => {
   }
 };
 
+// 基于后端完整蓝图数据生成个性洞察
+const generateInsightsFromCompleteBlueprint = (completeBlueprintData: any) => {
+  try {
+    const innerBlueprint = completeBlueprintData?.inner_blueprint;
+    if (!innerBlueprint) {
+      console.warn('⚠️ 完整蓝图数据中没有inner_blueprint');
+      return null;
+    }
+
+    console.log('🔧 使用后端inner_blueprint数据:', innerBlueprint);
+
+    return {
+      // Core Essence - 核心本质
+      coreNature: innerBlueprint.core_essence?.description || 'Your core essence is being analyzed...',
+      
+      // Natural Strengths - 天生优势
+      strengths: innerBlueprint.natural_strengths?.strengths || ['Wisdom', 'Balance', 'Growth'],
+      
+      // Growth Areas - 成长挑战  
+      challenges: innerBlueprint.growth_areas?.balance_path?.suggestions || ['Continue growing', 'Stay balanced'],
+      
+      // Life Path - 生命曲线描述
+      lifePath: innerBlueprint.life_journey_curve?.description || 'Your life journey is unfolding beautifully',
+      
+      // Relationships - 这里需要根据growth_areas的分析来生成
+      relationships: innerBlueprint.growth_areas?.analysis || 'Building meaningful connections through understanding',
+      
+      // Career - 根据natural_strengths生成职业建议
+      career: `Based on your strengths in ${innerBlueprint.natural_strengths?.strengths?.[0] || 'wisdom'}, you are suited for roles requiring insight and understanding`
+    };
+
+  } catch (error) {
+    console.error('❌ 解析完整蓝图数据失败:', error);
+    return null;
+  }
+};
+
 // 基于转换后的数据生成个性洞察
-const generatePersonalityInsights = (elements: Element[], userProfile: UserProfile) => {
+const generatePersonalityInsights = (elements: Element[], userProfile: UserProfile, completeBlueprintData?: any) => {
+  // 优先使用完整蓝图数据
+  if (completeBlueprintData) {
+    const backendInsights = generateInsightsFromCompleteBlueprint(completeBlueprintData);
+    if (backendInsights) {
+      console.log('🎉 使用后端完整蓝图数据生成个性洞察');
+      return backendInsights;
+    }
+  }
+
   if (elements.length === 0) {
     return {
       coreNature: 'Unable to generate insights from backend data.',
@@ -179,6 +235,7 @@ const generatePersonalityInsights = (elements: Element[], userProfile: UserProfi
   }
   
   // 使用原有的洞察生成逻辑
+  console.log('🔧 使用本地算法生成个性洞察');
   return getPersonalityInsights(elements, userProfile);
 };
 
@@ -241,6 +298,7 @@ export function ElementalAnalysis({ userProfile, onComplete, elementalData }: El
   const [elements, setElements] = useState<Element[]>([]);
   const [insights, setInsights] = useState<any>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(true);
+  const [completeBlueprintData, setCompleteBlueprintData] = useState<any>(null);
 
   useEffect(() => {
     // 如果有后端数据，使用后端数据；否则使用本地生成的数据
@@ -249,10 +307,13 @@ export function ElementalAnalysis({ userProfile, onComplete, elementalData }: El
       // 将后端数据转换为前端格式
       const backendElements = convertBackendDataToFrontend(elementalData);
       if (backendElements.length > 0) {
-        const personalityInsights = generatePersonalityInsights(backendElements, userProfile);
+        const personalityInsights = generatePersonalityInsights(backendElements, userProfile); // 不传递completeBlueprintData，因为这时还没获取到
         setElements(backendElements);
         setInsights(personalityInsights);
         setIsAnalyzing(false);
+        
+        // 立即调用blueprint/complete获取完整蓝图数据
+        callBlueprintComplete();
       } else {
         // 转换失败，使用本地算法
         console.log('🔧 后端数据转换失败，使用本地生成的五行数据');
@@ -276,6 +337,38 @@ export function ElementalAnalysis({ userProfile, onComplete, elementalData }: El
       }, 3000);
     }
   }, [userProfile, elementalData]);
+
+  // 调用blueprint/complete接口
+  const callBlueprintComplete = async () => {
+    try {
+      const userId = localStorage.getItem('user_id');
+      if (!userId) {
+        console.warn('⚠️ 没有找到用户ID，无法调用blueprint/complete');
+        return;
+      }
+
+      console.log('🔧 调用blueprint/complete接口获取完整蓝图...');
+      const completeData = await BlueprintApiService.generateBlueprintComplete({
+        user_id: userId,
+        user_profile: {
+          gender: (userProfile.gender || 'other') as 'male' | 'female' | 'other',
+          birth_date: userProfile.birthDate || '',
+          birth_time: userProfile.birthTime || '12:00',
+          birth_location: userProfile.birthLocation || ''
+        }
+      });
+      
+      console.log('🎉 完整蓝图数据获取成功:', completeData);
+      setCompleteBlueprintData(completeData);
+      
+      // 重新生成个性洞察，使用完整蓝图数据
+      const updatedInsights = generatePersonalityInsights(elements, userProfile, completeData);
+      setInsights(updatedInsights);
+      console.log('🔧 使用完整蓝图数据更新个性洞察:', updatedInsights);
+    } catch (error) {
+      console.error('❌ 获取完整蓝图失败:', error);
+    }
+  };
 
   if (isAnalyzing) {
     return (
@@ -681,7 +774,8 @@ export function ElementalAnalysis({ userProfile, onComplete, elementalData }: El
               if (currentStep < steps.length - 1) {
                 setCurrentStep(prev => prev + 1);
               } else {
-                onComplete();
+                // 传递完整蓝图数据给主应用
+                onComplete(completeBlueprintData);
               }
             }}
             className="flex-1 bg-gradient-to-r from-[#7BAEA5] to-[#E7A5A0] hover:from-[#6A9B91] hover:to-[#D89590] text-white"
