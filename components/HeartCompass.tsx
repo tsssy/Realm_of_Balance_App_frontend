@@ -5,20 +5,17 @@ import { Card } from "./ui/card";
 import { motion } from "framer-motion";
 import { Heart, Send } from "lucide-react";
 import { IChing64Compass } from "./IChing64Compass";
+import { HeartCompassApiService, type HeartCompassRecord } from '../services/heartCompassApi';
 
-const qianHexagramData = {
-  code: "乾 (Qián)",
-  title: "The Creative, Heaven",
-  insight: "Heaven moves with strength, and the wise person strives constantly for self-improvement",
-  analysis: "The Qián hexagram symbolizes the power of Heaven — pure yang, strength, and eternal movement. This is the most powerful hexagram among the 64, representing creativity, leadership, and infinite possibilities. When Qián appears, the universe is telling you that now is the time to manifest your inner strength and creative gifts. Just as the sky never ceases its movement, you are called to continue growing and progressing.",
-  actionGuide: [
-    "Trust in your inner creativity and leadership abilities",
-    "Take initiative and become a catalyst for positive change", 
-    "Maintain strong will while leading with virtue and compassion",
-    "Transform your vision into concrete action plans"
-  ],
-  encouragement: "The energy of Qián flows through you, meaning you have the power to change your current situation. Heaven moves with vigor, and the wise person strengthens themselves unceasingly. Your persistence and efforts will bring unexpected results."
-};
+interface HeartCompassProps {
+  userProfile?: {
+    gender?: string;
+    birthDate?: string;
+    birthTime?: string;
+    birthLocation?: string;
+  };
+  onSubmit?: (data: any) => void;
+}
 
 const exampleQuestions = [
   "How should I face my current life challenges?",
@@ -29,29 +26,71 @@ const exampleQuestions = [
   "What can help me gain inner strength?"
 ];
 
-export function HeartCompass({ onSubmit }: { onSubmit?: (data: any) => void }) {
+export function HeartCompass({ userProfile, onSubmit }: HeartCompassProps) {
   const [question, setQuestion] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [showGuidance, setShowGuidance] = useState(false);
   const [compassRotation, setCompassRotation] = useState(0);
+  const [guidanceData, setGuidanceData] = useState<HeartCompassRecord | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!question.trim()) return;
     
+    // 验证问题格式
+    if (!HeartCompassApiService.validateQuestion(question)) {
+      setError("Please enter a question between 5-500 characters");
+      return;
+    }
+    
     setIsProcessing(true);
+    setError(null);
     setCompassRotation(0);
     
-    // Simulate compass spinning and landing on Qián hexagram
-    setTimeout(() => {
-      // Rotate to point to Qián position (top, 0 degrees adjusted for compass orientation)
-      setCompassRotation(45); // Qián position on the compass
-    }, 1000);
-    
-    setTimeout(() => {
+    try {
+      // 获取用户ID
+      const userId = localStorage.getItem('user_id');
+      if (!userId) {
+        throw new Error('User ID not found. Please complete your profile first.');
+      }
+      
+      // 罗盘动画
+      setTimeout(() => {
+        setCompassRotation(45); // 模拟指向卦象位置
+      }, 1000);
+      
+      // 调用后端API
+      const guidanceRecord = await HeartCompassApiService.seekGuidance({
+        user_id: userId,
+        question: question.trim(),
+        user_profile: {
+          gender: (userProfile?.gender || 'other') as 'male' | 'female' | 'other',
+          birth_date: userProfile?.birthDate || '',
+          birth_time: userProfile?.birthTime || '12:00',
+          birth_location: userProfile?.birthLocation || ''
+        }
+      });
+      
+      console.log('🎉 Heart Compass指导获取成功:', guidanceRecord);
+      setGuidanceData(guidanceRecord);
+      
+      // 延迟显示结果，让用户看到完整的加载动画
+      setTimeout(() => {
+        setIsProcessing(false);
+        setShowGuidance(true);
+        
+        // 通知父组件
+        if (onSubmit) {
+          onSubmit(guidanceRecord);
+        }
+      }, 4000); // 保持4秒加载时间以匹配原有体验
+      
+    } catch (error) {
+      console.error('❌ Heart Compass指导获取失败:', error);
+      setError('Failed to get guidance. Please try again.');
       setIsProcessing(false);
-      setShowGuidance(true);
-    }, 4000);
+    }
   };
 
   const getRandomPlaceholder = () => {
@@ -130,7 +169,7 @@ export function HeartCompass({ onSubmit }: { onSubmit?: (data: any) => void }) {
     );
   }
 
-  if (showGuidance) {
+  if (showGuidance && guidanceData) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-[#F8F5F0] to-white px-6 py-8">
         <div className="max-w-md mx-auto">
@@ -153,13 +192,13 @@ export function HeartCompass({ onSubmit }: { onSubmit?: (data: any) => void }) {
           >
             <Card className="p-6 mb-6 bg-gradient-to-br from-[#7BAEA5]/10 to-white border-[#7BAEA5]/20 text-center">
               <div className="text-4xl text-[#2B3A55] mb-2 font-['Playfair_Display']">
-                {qianHexagramData.code}
+                {guidanceData.hexagram.name} ({guidanceData.hexagram.code})
               </div>
               <h3 className="text-xl text-[#2B3A55] mb-3 font-['Playfair_Display']">
-                {qianHexagramData.title}
+                {guidanceData.hexagram.title}
               </h3>
               <p className="text-[#6E6259] italic leading-relaxed">
-                "{qianHexagramData.insight}"
+                "{guidanceData.dialogue_flow.revelation}"
               </p>
             </Card>
           </motion.div>
@@ -173,11 +212,15 @@ export function HeartCompass({ onSubmit }: { onSubmit?: (data: any) => void }) {
             <Card className="p-6 mb-6 bg-white/80 backdrop-blur-sm border-[#E7A5A0]/20">
               <h4 className="text-lg text-[#2B3A55] mb-3 font-medium flex items-center gap-2">
                 <Heart size={18} className="text-[#E7A5A0]" />
-                Deep Wisdom
+                {guidanceData.deep_wisdom.title}
               </h4>
-              <p className="text-[#6E6259] leading-relaxed">
-                {qianHexagramData.analysis}
+              <p className="text-[#6E6259] leading-relaxed mb-3">
+                {guidanceData.deep_wisdom.explanation}
               </p>
+              <div className="text-sm text-[#6E6259]/80 space-y-2">
+                <p><strong>Philosophical Meaning:</strong> {guidanceData.deep_wisdom.philosophical_meaning}</p>
+                <p><strong>Personal Interpretation:</strong> {guidanceData.deep_wisdom.personal_interpretation}</p>
+              </div>
             </Card>
           </motion.div>
 
@@ -189,18 +232,38 @@ export function HeartCompass({ onSubmit }: { onSubmit?: (data: any) => void }) {
           >
             <Card className="p-6 mb-6 bg-gradient-to-br from-[#2B3A55]/10 to-white border-[#2B3A55]/20">
               <h4 className="text-lg text-[#2B3A55] mb-4 font-medium">
-                ✨ Action Guide
+                ✨ {guidanceData.action_guide.title}
               </h4>
-              <div className="space-y-3">
-                {qianHexagramData.actionGuide.map((action, index) => (
+              
+              {/* Main Actions */}
+              <div className="space-y-3 mb-4">
+                <h5 className="font-medium text-[#2B3A55] text-sm">Main Actions:</h5>
+                {guidanceData.action_guide.main_actions.map((action: string, index: number) => (
                   <motion.div
                     key={index}
                     initial={{ x: -20, opacity: 0 }}
                     animate={{ x: 0, opacity: 1 }}
-                    transition={{ delay: 1.2 + (index * 0.2) }}
+                    transition={{ delay: 1.1 + (index * 0.1) }}
                     className="flex items-start gap-3"
                   >
                     <div className="w-2 h-2 bg-[#7BAEA5] rounded-full mt-2 flex-shrink-0"></div>
+                    <p className="text-[#6E6259] leading-relaxed">{action}</p>
+                  </motion.div>
+                ))}
+              </div>
+              
+              {/* Supporting Actions */}
+              <div className="space-y-3">
+                <h5 className="font-medium text-[#2B3A55] text-sm">Supporting Actions:</h5>
+                {guidanceData.action_guide.supporting_actions.map((action: string, index: number) => (
+                  <motion.div
+                    key={index}
+                    initial={{ x: -20, opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    transition={{ delay: 1.3 + (index * 0.1) }}
+                    className="flex items-start gap-3"
+                  >
+                    <div className="w-2 h-2 bg-[#E7A5A0] rounded-full mt-2 flex-shrink-0"></div>
                     <p className="text-[#6E6259] leading-relaxed">{action}</p>
                   </motion.div>
                 ))}
@@ -216,7 +279,7 @@ export function HeartCompass({ onSubmit }: { onSubmit?: (data: any) => void }) {
           >
             <Card className="p-6 mb-8 bg-gradient-to-br from-[#E7A5A0]/10 to-white border-[#E7A5A0]/20">
               <p className="text-[#6E6259] leading-relaxed italic text-center">
-                {qianHexagramData.encouragement}
+                {guidanceData.action_guide.inspirational_message}
               </p>
             </Card>
           </motion.div>
@@ -233,6 +296,8 @@ export function HeartCompass({ onSubmit }: { onSubmit?: (data: any) => void }) {
                 setShowGuidance(false);
                 setQuestion("");
                 setCompassRotation(0);
+                setGuidanceData(null);
+                setError(null);
               }}
               className="px-8 py-3 text-[#7BAEA5] border border-[#7BAEA5]/30 rounded-lg hover:bg-[#7BAEA5]/10 transition-colors font-medium"
             >
@@ -295,6 +360,9 @@ export function HeartCompass({ onSubmit }: { onSubmit?: (data: any) => void }) {
                   className="bg-white/60 border-[#7BAEA5]/30 focus:border-[#7BAEA5] rounded-lg min-h-24 resize-none text-center"
                   required
                 />
+                {error && (
+                  <p className="text-red-500 text-sm text-center mt-2">{error}</p>
+                )}
                 <p className="text-xs text-[#6E6259]/70 text-center">
                   Speak from your heart - the more sincere your question, the clearer the guidance
                 </p>

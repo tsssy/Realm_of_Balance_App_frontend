@@ -151,6 +151,11 @@ export default function App() {
     setCurrentScreen("blueprint-report");
   };
 
+  const handleHeartCompassSubmit = (data: any) => {
+    // HeartCompass组件内部处理结果显示，不需要跳转页面
+    console.log('HeartCompass指导数据:', data);
+  };
+
   const handleBirthTimeSelect = (
     birthDate: string,
     birthTime: string,
@@ -320,7 +325,10 @@ export default function App() {
   const MainApp = () => (
     <div className="min-h-screen bg-gradient-to-b from-[#F8F5F0] to-white pb-20">
       {activeTab === "heart-compass" && (
-        <HeartCompass onSubmit={handleBlueprintSubmit} />
+        <HeartCompass 
+          userProfile={userProfile}
+          onSubmit={handleHeartCompassSubmit} 
+        />
       )}
       {activeTab === "daily-fortune" && (
         <DailyFortune userProfile={userProfile} />
