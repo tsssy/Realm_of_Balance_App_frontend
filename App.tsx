@@ -27,11 +27,27 @@ type MainTab =
   | "daily-fortune"
   | "personal-blueprint";
 
-interface UserProfile {
+interface UserProfileState {
   gender?: string;
   birthDate?: string;
   birthTime?: string;
   birthLocation?: string;
+}
+
+// API相关类型定义
+interface CreateUserRequest {
+  device_id: string;
+  profile: {
+    gender: 'male' | 'female' | 'other';
+    birth_date: string;
+    birth_time: string;
+    birth_location: string;
+  };
+}
+
+interface CreateUserResponse {
+  user_id: string;
+  message: string;
 }
 
 export default function App() {
@@ -39,10 +55,88 @@ export default function App() {
     useState<Screen>("onboarding");
   const [activeTab, setActiveTab] =
     useState<MainTab>("heart-compass");
-  const [userProfile, setUserProfile] = useState<UserProfile>({
+  const [userProfile, setUserProfile] = useState<UserProfileState>({
     gender: "other", // Set default gender since we're skipping gender selection
   });
   const [blueprintData, setBlueprintData] = useState(null);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // 生成或获取设备ID
+  const generateDeviceId = (): string => {
+    let deviceId = localStorage.getItem('device_id');
+    if (!deviceId) {
+      deviceId = 'device_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+      localStorage.setItem('device_id', deviceId);
+      console.log('🔧 生成新的设备ID:', deviceId);
+    } else {
+      console.log('🔧 使用现有设备ID:', deviceId);
+    }
+    return deviceId;
+  };
+
+  // 测试后端连接
+  const testBackendConnection = async (): Promise<boolean> => {
+    try {
+      const response = await fetch('http://localhost:8000/health');
+      if (response.ok) {
+        const data = await response.json();
+        console.log('✅ 后端连接成功:', data);
+        return true;
+      } else {
+        console.warn('⚠️ 后端连接异常:', response.status);
+        return false;
+      }
+    } catch (error) {
+      console.warn('⚠️ 后端连接失败:', error);
+      return false;
+    }
+  };
+
+  // 创建用户API调用
+  const createUser = async (userData: CreateUserRequest): Promise<CreateUserResponse> => {
+    try {
+      console.log('🔧 发送用户创建请求:', userData);
+      
+      const response = await fetch('http://localhost:8000/api/v1/user/create', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Device-ID': userData.device_id
+        },
+        body: JSON.stringify(userData)
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log('🎉 用户创建成功:', data);
+      return data;
+    } catch (error) {
+      console.error('❌ 用户创建失败:', error);
+      throw error;
+    }
+  };
+
+  // 初始化时检查后端连接
+  useEffect(() => {
+    const initializeApp = async () => {
+      const deviceId = generateDeviceId();
+      console.log('🔧 应用初始化，设备ID:', deviceId);
+      
+      // 测试后端连接
+      const isBackendConnected = await testBackendConnection();
+      if (isBackendConnected) {
+        console.log('✅ 后端服务可用，可以调用API');
+      } else {
+        console.log('⚠️ 后端服务不可用，将使用本地模式');
+      }
+    };
+
+    initializeApp();
+  }, []);
 
   // Auto-scroll to top when switching screens or tabs
   useEffect(() => {
@@ -66,10 +160,52 @@ export default function App() {
     setCurrentScreen("birth-location-selection");
   };
 
-  const handleBirthLocationSelect = (birthLocation: string) => {
+  const handleBirthLocationSelect = async (birthLocation: string) => {
     const updatedProfile = { ...userProfile, birthLocation };
     setUserProfile(updatedProfile);
-    setCurrentScreen("elemental-analysis");
+    
+    console.log('🔧 用户信息收集完成:', updatedProfile);
+    
+    // 尝试创建用户
+    setIsLoading(true);
+    try {
+      const deviceId = generateDeviceId();
+      console.log('🔧 使用设备ID:', deviceId);
+
+      // 准备用户数据
+      const userData: CreateUserRequest = {
+        device_id: deviceId,
+        profile: {
+          gender: (updatedProfile.gender || 'other') as 'male' | 'female' | 'other',
+          birth_date: updatedProfile.birthDate!,
+          birth_time: updatedProfile.birthTime || '12:00',
+          birth_location: birthLocation,
+        }
+      };
+
+      console.log('🔧 发送用户创建请求:', userData);
+
+      // 调用创建用户API
+      const userResponse = await createUser(userData);
+
+      console.log('🎉 用户创建成功:', userResponse);
+
+      // 保存用户ID
+      setUserId(userResponse.user_id);
+      localStorage.setItem('user_id', userResponse.user_id);
+
+      console.log('🔧 用户ID已保存:', userResponse.user_id);
+
+      // 继续到元素分析页面
+      setCurrentScreen("elemental-analysis");
+    } catch (error) {
+      console.error('❌ 创建用户失败:', error);
+      console.log('🔧 继续使用本地模式，跳转到元素分析页面');
+      // 这里可以添加错误提示UI，暂时继续流程
+      setCurrentScreen("elemental-analysis");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleElementalAnalysisComplete = () => {
@@ -215,6 +351,7 @@ export default function App() {
             />
             <BirthLocationSelection
               onLocationSelect={handleBirthLocationSelect}
+              isLoading={isLoading}
             />
           </div>
         );

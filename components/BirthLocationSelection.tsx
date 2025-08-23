@@ -4,15 +4,20 @@ import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Card } from "./ui/card";
 import { motion } from "framer-motion";
-import { MapPin, Globe, Compass } from "lucide-react";
+import { MapPin, Globe, Compass, Loader2 } from "lucide-react";
 import { ImageWithFallback } from './figma/ImageWithFallback';
 
-export function BirthLocationSelection({ onLocationSelect }: { onLocationSelect: (location: string) => void }) {
+interface BirthLocationSelectionProps {
+  onLocationSelect: (location: string) => void;
+  isLoading?: boolean;
+}
+
+export function BirthLocationSelection({ onLocationSelect, isLoading = false }: BirthLocationSelectionProps) {
   const [location, setLocation] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (location.trim()) {
+    if (location.trim() && !isLoading) {
       onLocationSelect(location.trim());
     }
   };
@@ -69,6 +74,7 @@ export function BirthLocationSelection({ onLocationSelect }: { onLocationSelect:
                   onChange={(e) => setLocation(e.target.value)}
                   className="bg-white/60 border-[#E7A5A0]/30 focus:border-[#E7A5A0] rounded-lg text-lg py-3"
                   required
+                  disabled={isLoading}
                 />
                 <p className="text-xs text-[#6E6259]/70 leading-relaxed">
                   Enter city, state/province, and country. The more specific, the more precise your celestial coordinates.
@@ -77,16 +83,23 @@ export function BirthLocationSelection({ onLocationSelect }: { onLocationSelect:
 
               {/* Submit Button */}
               <motion.div
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+                whileHover={{ scale: isLoading ? 1 : 1.02 }}
+                whileTap={{ scale: isLoading ? 1 : 0.98 }}
                 className="pt-4"
               >
                 <Button
                   type="submit"
-                  disabled={!location.trim()}
-                  className="w-full bg-gradient-to-r from-[#E7A5A0] to-[#7BAEA5] hover:from-[#D89590] hover:to-[#6A9B91] text-white py-4 rounded-lg font-medium text-lg shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50"
+                  disabled={!location.trim() || isLoading}
+                  className="w-full bg-gradient-to-r from-[#E7A5A0] to-[#7BAEA5] hover:from-[#D89590] hover:to-[#6A9B91] text-white py-4 rounded-lg font-medium text-lg shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 flex items-center justify-center gap-2"
                 >
-                  Complete Blueprint
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      Creating User...
+                    </>
+                  ) : (
+                    'Complete Blueprint'
+                  )}
                 </Button>
               </motion.div>
             </form>
