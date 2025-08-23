@@ -23,6 +23,7 @@ interface Element {
 interface ElementalAnalysisProps {
   userProfile: UserProfile;
   onComplete: () => void;
+  elementalData?: any; // 从后端API获取的五行分析数据
 }
 
 const generateElementalProfile = (userProfile: UserProfile): Element[] => {
@@ -109,6 +110,79 @@ const generateElementalProfile = (userProfile: UserProfile): Element[] => {
   return baseElements.sort((a, b) => b.strength - a.strength);
 };
 
+// 将后端返回的五行数据转换为前端Element[]格式
+const convertBackendDataToFrontend = (backendData: any): Element[] => {
+  try {
+    // 检查是否有quick_data.core_energy_field数据
+    const quickData = backendData.quick_data;
+    const coreEnergyField = quickData?.core_energy_field;
+    
+    if (!coreEnergyField || !coreEnergyField.chart_data) {
+      console.warn('⚠️ 后端数据中没有quick_data.core_energy_field.chart_data，使用本地算法');
+      return [];
+    }
+
+    console.log('🔧 使用后端quick_data:', quickData);
+    console.log('🔧 转换core_energy_field数据:', coreEnergyField);
+
+    // 从chart_data中提取五行数据
+    const chartData = coreEnergyField.chart_data;
+    
+    // 定义五行映射（根据后端数据的axis字段格式："中文 | 英文"）
+    const elementMapping = {
+      '金 | Metal': { name: 'Metal', chineseName: '金', color: '#2B3A55' },
+      '木 | Wood': { name: 'Wood', chineseName: '木', color: '#7BAEA5' },
+      '水 | Water': { name: 'Water', chineseName: '水', color: '#7BAEA5' },
+      '火 | Fire': { name: 'Fire', chineseName: '火', color: '#E7A5A0' },
+      '土 | Earth': { name: 'Earth', chineseName: '土', color: '#6E6259' }
+    };
+
+    const elements: Element[] = [];
+
+    // 转换chart_data到Element格式
+    chartData.forEach((item: any) => {
+      const elementInfo = elementMapping[item.axis as keyof typeof elementMapping];
+      if (elementInfo) {
+        elements.push({
+          name: elementInfo.name,
+          chineseName: elementInfo.chineseName,
+          strength: item.value || 20, // 使用value字段作为强度
+          color: elementInfo.color,
+          characteristics: ['Wisdom', 'Balance'] // 使用默认特征
+        });
+      }
+    });
+
+    // 按强度排序
+    elements.sort((a, b) => b.strength - a.strength);
+    
+    console.log('🔧 转换后的前端五行数据:', elements);
+    return elements;
+
+  } catch (error) {
+    console.error('❌ 转换后端数据失败:', error);
+    return [];
+  }
+};
+
+// 基于转换后的数据生成个性洞察
+const generatePersonalityInsights = (elements: Element[], userProfile: UserProfile) => {
+  if (elements.length === 0) {
+    return {
+      coreNature: 'Unable to generate insights from backend data.',
+      strengths: ['Data processing'],
+      challenges: ['Backend connection'],
+      lifePath: 'Please try again later.',
+      relationships: 'Please try again later.',
+      career: 'Please try again later.'
+    };
+  }
+  
+  // 使用原有的洞察生成逻辑
+  return getPersonalityInsights(elements, userProfile);
+};
+
+// 原有的个性洞察生成函数
 const getPersonalityInsights = (elements: Element[], userProfile: UserProfile) => {
   const dominant = elements[0];
   const secondary = elements[1];
@@ -162,22 +236,46 @@ const getPersonalityInsights = (elements: Element[], userProfile: UserProfile) =
   return insights;
 };
 
-export function ElementalAnalysis({ userProfile, onComplete }: ElementalAnalysisProps) {
+export function ElementalAnalysis({ userProfile, onComplete, elementalData }: ElementalAnalysisProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [elements, setElements] = useState<Element[]>([]);
   const [insights, setInsights] = useState<any>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(true);
 
   useEffect(() => {
-    // 模拟分析过程
-    setTimeout(() => {
-      const elementalProfile = generateElementalProfile(userProfile);
-      const personalityInsights = getPersonalityInsights(elementalProfile, userProfile);
-      setElements(elementalProfile);
-      setInsights(personalityInsights);
-      setIsAnalyzing(false);
-    }, 3000);
-  }, [userProfile]);
+    // 如果有后端数据，使用后端数据；否则使用本地生成的数据
+    if (elementalData) {
+      console.log('🔧 使用后端五行分析数据:', elementalData);
+      // 将后端数据转换为前端格式
+      const backendElements = convertBackendDataToFrontend(elementalData);
+      if (backendElements.length > 0) {
+        const personalityInsights = generatePersonalityInsights(backendElements, userProfile);
+        setElements(backendElements);
+        setInsights(personalityInsights);
+        setIsAnalyzing(false);
+      } else {
+        // 转换失败，使用本地算法
+        console.log('🔧 后端数据转换失败，使用本地生成的五行数据');
+        setTimeout(() => {
+          const elementalProfile = generateElementalProfile(userProfile);
+          const personalityInsights = getPersonalityInsights(elementalProfile, userProfile);
+          setElements(elementalProfile);
+          setInsights(personalityInsights);
+          setIsAnalyzing(false);
+        }, 3000);
+      }
+    } else {
+      console.log('🔧 使用本地生成的五行数据');
+      // 模拟分析过程
+      setTimeout(() => {
+        const elementalProfile = generateElementalProfile(userProfile);
+        const personalityInsights = getPersonalityInsights(elementalProfile, userProfile);
+        setElements(elementalProfile);
+        setInsights(personalityInsights);
+        setIsAnalyzing(false);
+      }, 3000);
+    }
+  }, [userProfile, elementalData]);
 
   if (isAnalyzing) {
     return (
