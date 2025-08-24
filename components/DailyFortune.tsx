@@ -340,7 +340,7 @@ export function DailyFortune({ userProfile }: DailyFortuneProps) {
                     <p className="text-sm text-[#2B3A55] font-medium mb-1">
                       Recommended: {timeSlot.activity}
                     </p>
-                    <p className="text-sm text-[#6E6259] leading-relaxed">
+                    <p className="text-sm text-[#6E6259] leading-relaxed whitespace-pre-wrap break-words">
                       {timeSlot.description}
                     </p>
                   </div>
@@ -403,7 +403,7 @@ export function DailyFortune({ userProfile }: DailyFortuneProps) {
             <h4 className="text-lg text-[#2B3A55] mb-3 font-medium">
               📿 Daily Mantra
             </h4>
-            <p className="text-[#6E6259] leading-relaxed italic font-['Playfair_Display']">
+            <p className="text-[#6E6259] leading-relaxed italic font-['Playfair_Display'] whitespace-pre-wrap break-words">
               "{fortune.mantra}"
             </p>
           </Card>

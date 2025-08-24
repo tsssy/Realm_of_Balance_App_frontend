@@ -197,29 +197,66 @@ export function HeartCompass({ userProfile, onSubmit }: HeartCompassProps) {
               <h3 className="text-xl text-[#2B3A55] mb-3 font-['Playfair_Display']">
                 {guidanceData.hexagram.title}
               </h3>
-              <p className="text-[#6E6259] italic leading-relaxed">
+              <p className="text-[#6E6259] italic leading-relaxed whitespace-pre-wrap break-words">
                 "{guidanceData.dialogue_flow.revelation}"
               </p>
             </Card>
           </motion.div>
 
-          {/* Analysis */}
+          {/* Dialogue Flow - 统一的大框 */}
           <motion.div
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.6 }}
+          >
+            <Card className="p-6 mb-6 bg-gradient-to-br from-[#7BAEA5]/10 to-white border-[#7BAEA5]/20">
+              <h4 className="text-lg text-[#2B3A55] mb-4 font-medium flex items-center gap-2">
+                💬 Dialogue Flow
+              </h4>
+              
+              {/* Analysis */}
+              <div className="space-y-3 mb-4">
+                <h5 className="font-medium text-[#2B3A55] text-sm">🔍 Analysis:</h5>
+                <p className="text-[#6E6259] leading-relaxed whitespace-pre-wrap break-words">
+                  {guidanceData.dialogue_flow.analysis}
+                </p>
+              </div>
+              
+              {/* Guidance */}
+              <div className="space-y-3 mb-4">
+                <h5 className="font-medium text-[#2B3A55] text-sm">🧭 Guidance:</h5>
+                <p className="text-[#6E6259] leading-relaxed whitespace-pre-wrap break-words">
+                  {guidanceData.dialogue_flow.guidance}
+                </p>
+              </div>
+              
+              {/* Encouragement */}
+              <div className="space-y-3">
+                <h5 className="font-medium text-[#2B3A55] text-sm">💪 Encouragement:</h5>
+                <p className="text-[#6E6259] leading-relaxed whitespace-pre-wrap break-words">
+                  {guidanceData.dialogue_flow.encouragement}
+                </p>
+              </div>
+            </Card>
+          </motion.div>
+
+          {/* Deep Wisdom */}
+          <motion.div
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.7 }}
           >
             <Card className="p-6 mb-6 bg-white/80 backdrop-blur-sm border-[#E7A5A0]/20">
               <h4 className="text-lg text-[#2B3A55] mb-3 font-medium flex items-center gap-2">
                 <Heart size={18} className="text-[#E7A5A0]" />
                 {guidanceData.deep_wisdom.title}
               </h4>
-              <p className="text-[#6E6259] leading-relaxed mb-3">
+              <p className="text-[#6E6259] leading-relaxed mb-3 whitespace-pre-wrap break-words">
                 {guidanceData.deep_wisdom.explanation}
               </p>
               <div className="text-sm text-[#6E6259]/80 space-y-2">
-                <p><strong>Philosophical Meaning:</strong> {guidanceData.deep_wisdom.philosophical_meaning}</p>
-                <p><strong>Personal Interpretation:</strong> {guidanceData.deep_wisdom.personal_interpretation}</p>
+                <p><strong>Philosophical Meaning:</strong> <span className="whitespace-pre-wrap break-words">{guidanceData.deep_wisdom.philosophical_meaning}</span></p>
+                <p><strong>Personal Interpretation:</strong> <span className="whitespace-pre-wrap break-words">{guidanceData.deep_wisdom.personal_interpretation}</span></p>
               </div>
             </Card>
           </motion.div>
@@ -247,7 +284,7 @@ export function HeartCompass({ userProfile, onSubmit }: HeartCompassProps) {
                     className="flex items-start gap-3"
                   >
                     <div className="w-2 h-2 bg-[#7BAEA5] rounded-full mt-2 flex-shrink-0"></div>
-                    <p className="text-[#6E6259] leading-relaxed">{action}</p>
+                    <p className="text-[#6E6259] leading-relaxed whitespace-pre-wrap break-words">{action}</p>
                   </motion.div>
                 ))}
               </div>
@@ -264,7 +301,55 @@ export function HeartCompass({ userProfile, onSubmit }: HeartCompassProps) {
                     className="flex items-start gap-3"
                   >
                     <div className="w-2 h-2 bg-[#E7A5A0] rounded-full mt-2 flex-shrink-0"></div>
-                    <p className="text-[#6E6259] leading-relaxed">{action}</p>
+                    <p className="text-[#6E6259] leading-relaxed whitespace-pre-wrap break-words">{action}</p>
+                  </motion.div>
+                ))}
+              </div>
+            </Card>
+          </motion.div>
+
+          {/* Decision Protocol */}
+          <motion.div
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 1.2 }}
+          >
+            <Card className="p-6 mb-6 bg-gradient-to-br from-[#7BAEA5]/10 to-white border-[#7BAEA5]/20">
+              <h4 className="text-lg text-[#2B3A55] mb-4 font-medium">
+                🎯 {guidanceData.decision_protocol.title}
+              </h4>
+              
+              {/* Situation Code */}
+              <div className="space-y-3 mb-4">
+                <h5 className="font-medium text-[#2B3A55] text-sm">Situation Assessment:</h5>
+                <p className="text-[#6E6259] leading-relaxed whitespace-pre-wrap break-words">
+                  {guidanceData.decision_protocol.situation_code}
+                </p>
+              </div>
+              
+              {/* Core Strategy */}
+              <div className="space-y-3 mb-4">
+                <h5 className="font-medium text-[#2B3A55] text-sm">Core Strategy:</h5>
+                <p className="text-[#6E6259] leading-relaxed whitespace-pre-wrap break-words">
+                  {guidanceData.decision_protocol.core_strategy}
+                </p>
+              </div>
+              
+              {/* Action Guide Steps */}
+              <div className="space-y-3">
+                <h5 className="font-medium text-[#2B3A55] text-sm">Action Steps:</h5>
+                {guidanceData.decision_protocol.action_guide.map((step: string, index: number) => (
+                  <motion.div
+                    key={index}
+                    initial={{ x: -20, opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    transition={{ delay: 1.4 + (index * 0.1) }}
+                    className="flex items-start gap-3"
+                  >
+                    <div className="w-6 h-6 bg-[#7BAEA5] rounded-full flex items-center justify-center text-white text-xs font-medium flex-shrink-0">
+                      {index + 1}
+                    </div>
+                    <p className="text-[#6E6259] leading-relaxed whitespace-pre-wrap break-words">{step}</p>
                   </motion.div>
                 ))}
               </div>
@@ -278,7 +363,7 @@ export function HeartCompass({ userProfile, onSubmit }: HeartCompassProps) {
             transition={{ delay: 1.5 }}
           >
             <Card className="p-6 mb-8 bg-gradient-to-br from-[#E7A5A0]/10 to-white border-[#E7A5A0]/20">
-              <p className="text-[#6E6259] leading-relaxed italic text-center">
+              <p className="text-[#6E6259] leading-relaxed italic text-center whitespace-pre-wrap break-words">
                 {guidanceData.action_guide.inspirational_message}
               </p>
             </Card>

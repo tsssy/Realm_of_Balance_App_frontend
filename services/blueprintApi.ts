@@ -206,7 +206,10 @@ export class BlueprintApiService {
    */
   static async generateBlueprintQuick(request: BlueprintGenerateRequest): Promise<BlueprintResult> {
     try {
-      const response = await httpClient.post(API_ENDPOINTS.BLUEPRINT.QUICK, request);
+      // 为blueprint/quick设置更长的超时时间（60秒）
+      const response = await httpClient.post(API_ENDPOINTS.BLUEPRINT.QUICK, request, {
+        timeout: 60000 // 60秒超时
+      });
       return response.data.data;
     } catch (error) {
       console.error('快速生成五行结果失败:', error);
@@ -221,7 +224,10 @@ export class BlueprintApiService {
    */
   static async generateBlueprintComplete(request: BlueprintGenerateRequest): Promise<BlueprintResult> {
     try {
-      const response = await httpClient.post(API_ENDPOINTS.BLUEPRINT.COMPLETE, request);
+      // 为blueprint/complete设置更长的超时时间（90秒）
+      const response = await httpClient.post(API_ENDPOINTS.BLUEPRINT.COMPLETE, request, {
+        timeout: 90000 // 90秒超时
+      });
       return response.data.data;
     } catch (error) {
       console.error('生成完整蓝图失败:', error);
