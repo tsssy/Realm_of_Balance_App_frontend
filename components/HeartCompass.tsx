@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
 import { Card } from "./ui/card";
@@ -33,6 +33,42 @@ export function HeartCompass({ userProfile, onSubmit }: HeartCompassProps) {
   const [compassRotation, setCompassRotation] = useState(0);
   const [guidanceData, setGuidanceData] = useState<HeartCompassRecord | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // 在组件挂载时从localStorage恢复状态
+  useEffect(() => {
+    const savedGuidanceData = localStorage.getItem('heartCompass_guidanceData');
+    const savedQuestion = localStorage.getItem('heartCompass_question');
+    
+    if (savedGuidanceData && savedQuestion) {
+      try {
+        const parsedGuidanceData = JSON.parse(savedGuidanceData);
+        setGuidanceData(parsedGuidanceData);
+        setQuestion(savedQuestion);
+        setShowGuidance(true);
+      } catch (error) {
+        console.error('Error parsing saved guidance data:', error);
+        // 如果解析失败，清除无效数据
+        localStorage.removeItem('heartCompass_guidanceData');
+        localStorage.removeItem('heartCompass_question');
+      }
+    }
+  }, []);
+
+  // 保存状态到localStorage的辅助函数
+  const saveToLocalStorage = (guidanceRecord: HeartCompassRecord, userQuestion: string) => {
+    try {
+      localStorage.setItem('heartCompass_guidanceData', JSON.stringify(guidanceRecord));
+      localStorage.setItem('heartCompass_question', userQuestion);
+    } catch (error) {
+      console.error('Error saving to localStorage:', error);
+    }
+  };
+
+  // 清除localStorage的辅助函数
+  const clearFromLocalStorage = () => {
+    localStorage.removeItem('heartCompass_guidanceData');
+    localStorage.removeItem('heartCompass_question');
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -74,6 +110,9 @@ export function HeartCompass({ userProfile, onSubmit }: HeartCompassProps) {
       
       console.log('🎉 Heart Compass指导获取成功:', guidanceRecord);
       setGuidanceData(guidanceRecord);
+      
+      // 保存到localStorage
+      saveToLocalStorage(guidanceRecord, question.trim());
       
       // 延迟显示结果，让用户看到完整的加载动画
       setTimeout(() => {
@@ -383,6 +422,8 @@ export function HeartCompass({ userProfile, onSubmit }: HeartCompassProps) {
                 setCompassRotation(0);
                 setGuidanceData(null);
                 setError(null);
+                // 清除localStorage中的数据
+                clearFromLocalStorage();
               }}
               className="px-8 py-3 text-[#7BAEA5] border border-[#7BAEA5]/30 rounded-lg hover:bg-[#7BAEA5]/10 transition-colors font-medium"
             >
