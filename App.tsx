@@ -15,8 +15,10 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import { BlueprintApiService } from "./services/blueprintApi";
+import { UserApiService, type UserStatusResponse } from "./services/userApi";
 
 type Screen =
+  | "loading"
   | "onboarding"
   | "birth-time-selection"
   | "birth-location-selection"
@@ -35,25 +37,9 @@ interface UserProfileState {
   birthLocation?: string;
 }
 
-// API相关类型定义
-interface CreateUserRequest {
-  device_id: string;
-  profile: {
-    gender: 'male' | 'female' | 'other';
-    birth_date: string;
-    birth_time: string;
-    birth_location: string;
-  };
-}
-
-interface CreateUserResponse {
-  user_id: string;
-  message: string;
-}
-
 export default function App() {
   const [currentScreen, setCurrentScreen] =
-    useState<Screen>("onboarding");
+    useState<Screen>("loading");
   const [activeTab, setActiveTab] =
     useState<MainTab>("heart-compass");
   const [userProfile, setUserProfile] = useState<UserProfileState>({
@@ -64,19 +50,7 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [elementalData, setElementalData] = useState<any>(null);
   const [completeBlueprintData, setCompleteBlueprintData] = useState<any>(null);
-
-  // 生成或获取设备ID
-  const generateDeviceId = (): string => {
-    let deviceId = localStorage.getItem('device_id');
-    if (!deviceId) {
-      deviceId = 'device_' + Date.now() + '_' + Math.random().toString(36).substring(2, 11);
-      localStorage.setItem('device_id', deviceId);
-      console.log('🔧 生成新的设备ID:', deviceId);
-    } else {
-      console.log('🔧 使用现有设备ID:', deviceId);
-    }
-    return deviceId;
-  };
+  const [isInitializing, setIsInitializing] = useState(true);
 
   // 测试后端连接
   const testBackendConnection = async (): Promise<boolean> => {
@@ -96,45 +70,69 @@ export default function App() {
     }
   };
 
-  // 创建用户API调用
-  const createUser = async (userData: CreateUserRequest): Promise<CreateUserResponse> => {
+  // 检查用户状态
+  const checkUserStatus = async (): Promise<void> => {
     try {
-      console.log('🔧 发送用户创建请求:', userData);
+      const deviceId = UserApiService.generateDeviceId();
+      console.log('🔧 检查用户状态，设备ID:', deviceId);
       
-      const response = await fetch('http://localhost:8000/api/v1/user/create', {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Device-ID': userData.device_id
-        },
-        body: JSON.stringify(userData)
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+      const userStatusResponse = await UserApiService.checkUserStatus(deviceId);
+      console.log('🔧 用户状态响应:', userStatusResponse);
+      
+      if (userStatusResponse.success) {
+        const { is_new_user, user_profile } = userStatusResponse.data;
+        
+        if (!is_new_user && user_profile) {
+          // 老用户，设置用户信息并直接进入主应用
+          console.log('✅ 检测到老用户，直接进入主应用');
+          
+          // 从localStorage获取保存的用户ID
+          const savedUserId = UserApiService.getCurrentUserId();
+          if (savedUserId) {
+            setUserId(savedUserId);
+          }
+          
+          // 设置用户资料
+          setUserProfile({
+            gender: user_profile.gender,
+            birthDate: user_profile.birth_date,
+            birthTime: user_profile.birth_time,
+            birthLocation: user_profile.birth_location
+          });
+          
+          setCurrentScreen("main-app");
+        } else {
+          // 新用户，进入注册流程
+          console.log('📋 检测到新用户，进入注册流程');
+          setCurrentScreen("onboarding");
+        }
+      } else {
+        console.warn('⚠️ 用户状态检查失败，默认进入注册流程');
+        setCurrentScreen("onboarding");
       }
-
-      const data = await response.json();
-      console.log('🎉 用户创建成功:', data);
-      return data;
     } catch (error) {
-      console.error('❌ 用户创建失败:', error);
-      throw error;
+      console.error('❌ 检查用户状态时出错:', error);
+      console.log('🔧 发生错误，默认进入注册流程');
+      setCurrentScreen("onboarding");
+    } finally {
+      setIsInitializing(false);
     }
   };
 
-  // 初始化时检查后端连接
+  // 初始化时检查后端连接和用户状态
   useEffect(() => {
     const initializeApp = async () => {
-      const deviceId = generateDeviceId();
-      console.log('🔧 应用初始化，设备ID:', deviceId);
+      console.log('🔧 应用初始化开始');
       
       // 测试后端连接
       const isBackendConnected = await testBackendConnection();
       if (isBackendConnected) {
-        console.log('✅ 后端服务可用，可以调用API');
+        console.log('✅ 后端服务可用，检查用户状态');
+        await checkUserStatus();
       } else {
-        console.log('⚠️ 后端服务不可用，将使用本地模式');
+        console.log('⚠️ 后端服务不可用，直接进入注册流程');
+        setCurrentScreen("onboarding");
+        setIsInitializing(false);
       }
     };
 
@@ -145,11 +143,6 @@ export default function App() {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [currentScreen, activeTab]);
-
-  const handleBlueprintSubmit = (data: any) => {
-    setBlueprintData(data);
-    setCurrentScreen("blueprint-report");
-  };
 
   const handleHeartCompassSubmit = (data: any) => {
     // HeartCompass组件内部处理结果显示，不需要跳转页面
@@ -177,11 +170,11 @@ export default function App() {
     // 尝试创建用户
     setIsLoading(true);
     try {
-      const deviceId = generateDeviceId();
+      const deviceId = UserApiService.generateDeviceId();
       console.log('🔧 使用设备ID:', deviceId);
 
       // 准备用户数据
-      const userData: CreateUserRequest = {
+      const userData = {
         device_id: deviceId,
         profile: {
           gender: (updatedProfile.gender || 'other') as 'male' | 'female' | 'other',
@@ -193,14 +186,14 @@ export default function App() {
 
       console.log('🔧 发送用户创建请求:', userData);
 
-      // 调用创建用户API
-      const userResponse = await createUser(userData);
+      // 使用UserApiService创建用户
+      const userResponse = await UserApiService.createUser(userData);
 
       console.log('🎉 用户创建成功:', userResponse);
 
       // 保存用户ID
       setUserId(userResponse.user_id);
-      localStorage.setItem('user_id', userResponse.user_id);
+      UserApiService.setCurrentUserId(userResponse.user_id);
 
       console.log('🔧 用户ID已保存:', userResponse.user_id);
 
@@ -351,6 +344,17 @@ export default function App() {
     currentScreen === "blueprint-report";
 
   const renderScreen = () => {
+    // 如果正在初始化，显示简单的加载状态
+    if (isInitializing) {
+      return (
+        <div className="min-h-screen bg-gradient-to-b from-[#F8F5F0] to-white flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-pulse text-[#2B3A55] text-xl mb-4">正在检查用户状态...</div>
+          </div>
+        </div>
+      );
+    }
+
     switch (currentScreen) {
       case "onboarding":
         return (
