@@ -7,6 +7,7 @@ import { DailyFortune } from "./components/DailyFortune";
 import { PersonalBlueprint } from "./components/PersonalBlueprint";
 import { BlueprintReport } from "./components/BlueprintReport";
 import { ElementalAnalysis } from "./components/ElementalAnalysis";
+import ApiConfigDebug from "./components/ApiConfigDebug";
 import { motion } from "framer-motion";
 import {
   Compass,
@@ -16,6 +17,7 @@ import {
 } from "lucide-react";
 import { BlueprintApiService } from "./services/blueprintApi";
 import { UserApiService, type UserStatusResponse } from "./services/userApi";
+import { buildBackendUrl } from "./config/environment";
 
 type Screen =
   | "loading"
@@ -55,7 +57,7 @@ export default function App() {
   // 测试后端连接
   const testBackendConnection = async (): Promise<boolean> => {
     try {
-      const response = await fetch('http://localhost:8000/health');
+      const response = await fetch(`${buildBackendUrl()}/health`);
       if (response.ok) {
         const data = await response.json();
         console.log('✅ 后端连接成功:', data);
@@ -131,7 +133,7 @@ export default function App() {
       console.log('🔧 调用GET /api/v1/blueprint/' + userId + ' 接口...');
       
       // 调用获取蓝图数据的API
-      const response = await fetch(`http://localhost:8000/api/v1/blueprint/${userId}`, {
+      const response = await fetch(`${buildBackendUrl()}/api/v1/blueprint/${userId}`, {
         method: 'GET',
         headers: { 
           'Content-Type': 'application/json'
@@ -484,5 +486,11 @@ export default function App() {
     }
   };
 
-  return <div className="relative">{renderScreen()}</div>;
+  return (
+    <div className="relative">
+      {renderScreen()}
+      {/* API配置调试组件 - 仅在开发环境显示 */}
+      {import.meta.env.DEV && <ApiConfigDebug />}
+    </div>
+  );
 }

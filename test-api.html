@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API配置测试</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .info { background: #f0f0f0; padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .error { background: #ffebee; color: #c62828; padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .success { background: #e8f5e8; color: #2e7d32; padding: 10px; margin: 10px 0; border-radius: 5px; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+        code { background: #f5f5f5; padding: 2px 5px; border-radius: 3px; }
+    </style>
+</head>
+<body>
+    <h1>🔧 API配置测试页面</h1>
+    
+    <div class="info">
+        <h3>当前访问信息</h3>
+        <p>主机: <code id="currentHost"></code></p>
+        <p>端口: <code id="currentPort"></code></p>
+        <p>完整URL: <code id="currentUrl"></code></p>
+    </div>
+
+    <div class="info">
+        <h3>API配置信息</h3>
+        <p>后端基础URL: <code id="backendUrl"></code></p>
+        <p>完整API URL: <code id="fullApiUrl"></code></p>
+    </div>
+
+    <div>
+        <h3>测试操作</h3>
+        <button onclick="testBackendConnection()">🧪 测试后端连接</button>
+        <button onclick="testApiEndpoint()">🔗 测试API端点</button>
+        <button onclick="showEnvironmentInfo()">📊 显示环境信息</button>
+    </div>
+
+    <div id="testResults"></div>
+
+    <script type="module">
+        // 模拟环境检测
+        function getCurrentEnvironment() {
+            const hostname = window.location.hostname;
+            const currentPort = parseInt(window.location.port) || 3000;
+            
+            if (hostname === 'localhost' || hostname === '127.0.0.1') {
+                return {
+                    backend: { host: hostname, port: 8080, protocol: 'http' },  // 改为8080端口
+                    frontend: { host: hostname, port: currentPort, protocol: 'http' },
+                    isDevelopment: true,
+                    isProduction: false
+                };
+            }
+            
+            if (hostname === '183.173.136.51') {
+                return {
+                    backend: { host: hostname, port: 8080, protocol: 'http' },  // 改为8080端口
+                    frontend: { host: hostname, port: currentPort, protocol: 'http' },
+                    isDevelopment: false,
+                    isProduction: true
+                };
+            }
+            
+            return {
+                backend: { host: hostname, port: 8080, protocol: 'http' },  // 改为8080端口
+                frontend: { host: hostname, port: currentPort, protocol: 'http' },
+                isDevelopment: false,
+                isProduction: true
+            };
+        }
+
+        function buildBackendUrl() {
+            const env = getCurrentEnvironment();
+            return `${env.backend.protocol}://${env.backend.host}:${env.backend.port}`;
+        }
+
+        // 显示当前信息
+        document.getElementById('currentHost').textContent = window.location.hostname;
+        document.getElementById('currentPort').textContent = window.location.port || '80';
+        document.getElementById('currentUrl').textContent = window.location.href;
+        document.getElementById('backendUrl').textContent = buildBackendUrl();
+        document.getElementById('fullApiUrl').textContent = `${buildBackendUrl()}/api/v1`;
+
+        // 测试后端连接
+        window.testBackendConnection = async function() {
+            const resultsDiv = document.getElementById('testResults');
+            resultsDiv.innerHTML = '<div class="info">正在测试后端连接...</div>';
+            
+            try {
+                const response = await fetch(`${buildBackendUrl()}/health`);
+                if (response.ok) {
+                    const data = await response.json();
+                    resultsDiv.innerHTML = `
+                        <div class="success">
+                            <h4>✅ 后端连接成功！</h4>
+                            <p>状态: ${data.status}</p>
+                            <p>服务: ${data.service}</p>
+                            <p>版本: ${data.version}</p>
+                        </div>
+                    `;
+                } else {
+                    resultsDiv.innerHTML = `
+                        <div class="error">
+                            <h4>❌ 后端连接失败</h4>
+                            <p>状态码: ${response.status}</p>
+                            <p>状态文本: ${response.statusText}</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultsDiv.innerHTML = `
+                    <div class="error">
+                        <h4>💥 连接错误</h4>
+                        <p>错误信息: ${error.message}</p>
+                        <p>可能的原因:</p>
+                        <ul>
+                            <li>后端服务未启动</li>
+                            <li>防火墙阻止连接</li>
+                            <li>端口配置错误</li>
+                            <li>网络连接问题</li>
+                        </ul>
+                    </div>
+                `;
+            }
+        };
+
+        // 测试API端点
+        window.testApiEndpoint = async function() {
+            const resultsDiv = document.getElementById('testResults');
+            resultsDiv.innerHTML = '<div class="info">正在测试API端点...</div>';
+            
+            try {
+                const response = await fetch(`${buildBackendUrl()}/api/v1/health`);
+                if (response.ok) {
+                    const data = await response.json();
+                    resultsDiv.innerHTML = `
+                        <div class="success">
+                            <h4>✅ API端点测试成功！</h4>
+                            <p>端点: /api/v1/health</p>
+                            <p>响应: ${JSON.stringify(data, null, 2)}</p>
+                        </div>
+                    `;
+                } else {
+                    resultsDiv.innerHTML = `
+                        <div class="error">
+                            <h4>❌ API端点测试失败</h4>
+                            <p>状态码: ${response.status}</p>
+                            <p>状态文本: ${response.statusText}</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultsDiv.innerHTML = `
+                    <div class="error">
+                        <h4>💥 API端点测试错误</h4>
+                        <p>错误信息: ${error.message}</p>
+                    </div>
+                `;
+            }
+        };
+
+        // 显示环境信息
+        window.showEnvironmentInfo = function() {
+            const env = getCurrentEnvironment();
+            const resultsDiv = document.getElementById('testResults');
+            
+            resultsDiv.innerHTML = `
+                <div class="info">
+                    <h4>📊 环境配置信息</h4>
+                    <p><strong>当前环境:</strong> ${env.isDevelopment ? '开发环境' : '生产环境'}</p>
+                    <p><strong>前端配置:</strong></p>
+                    <ul>
+                        <li>主机: ${env.frontend.host}</li>
+                        <li>端口: ${env.frontend.port}</li>
+                        <li>协议: ${env.frontend.protocol}</li>
+                    </ul>
+                    <p><strong>后端配置:</strong></p>
+                    <ul>
+                        <li>主机: ${env.backend.host}</li>
+                        <li>端口: ${env.backend.port}</li>
+                        <li>协议: ${env.backend.protocol}</li>
+                    </ul>
+                </div>
+            `;
+        };
+    </script>
+</body>
+</html>

@@ -1,7 +1,11 @@
+import { buildBackendUrl, getEnvironmentInfo } from './environment';
+
 // API配置文件
 export const API_CONFIG = {
-  // 后端API基础URL
-  BASE_URL: 'http://localhost:8000',
+  // 后端API基础URL - 使用环境配置系统
+  get BASE_URL() {
+    return buildBackendUrl();
+  },
   
   // API版本路径
   API_V1: '/api/v1',
@@ -82,14 +86,39 @@ export const ENV_CONFIG = {
   
   // 是否为测试环境
   IS_TEST: import.meta.env.MODE === 'test',
+  
+  // 当前访问的主机名
+  CURRENT_HOST: typeof window !== 'undefined' ? window.location.hostname : 'localhost',
+  
+  // 当前访问的端口
+  CURRENT_PORT: typeof window !== 'undefined' ? window.location.port : '3000',
+  
+  // 是否为本地访问
+  IS_LOCAL: typeof window !== 'undefined' ? 
+    (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') : true,
+  
+  // 是否为网络访问
+  IS_NETWORK: typeof window !== 'undefined' ? 
+    (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') : false,
 };
 
 // 根据环境动态设置API URL
 export const getApiBaseUrl = () => {
-  if (ENV_CONFIG.IS_DEV) {
-    return API_CONFIG.BASE_URL;
-  }
-  
-  // 生产环境可以配置不同的URL
-  return API_CONFIG.BASE_URL;
+  return buildBackendUrl();
+};
+
+// 获取完整的API URL（包含版本路径）
+export const getFullApiUrl = () => {
+  return API_CONFIG.FULL_BASE_URL;
+};
+
+// 调试信息
+export const getApiDebugInfo = () => {
+  const envInfo = getEnvironmentInfo();
+  return {
+    ...envInfo,
+    baseUrl: API_CONFIG.BASE_URL,
+    fullUrl: API_CONFIG.FULL_BASE_URL,
+    environment: ENV_CONFIG.IS_DEV ? 'development' : ENV_CONFIG.IS_PROD ? 'production' : 'test'
+  };
 };
