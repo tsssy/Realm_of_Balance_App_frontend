@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { Calendar, Sunrise, Moon, Star, RefreshCw } from "lucide-react";
 import { IChing64Compass } from "./IChing64Compass";
 import { ImageWithFallback } from './figma/ImageWithFallback';
+import DailyFortuneApiService, { type DailyFortune } from '../services/dailyFortuneApi';
 
 interface UserProfile {
   gender?: string;
@@ -121,26 +122,77 @@ const getEnergyColor = (energy: string) => {
   }
 };
 
+const getTimePeriodIcon = (period: string) => {
+  if (period.includes('Morning') || period.includes('早晨')) {
+    return <Sunrise size={20} className="text-yellow-500" />;
+  } else if (period.includes('Afternoon') || period.includes('下午')) {
+    return <Star size={20} className="text-orange-500" />;
+  } else if (period.includes('Evening') || period.includes('晚上')) {
+    return <Moon size={20} className="text-purple-500" />;
+  } else {
+    return <Calendar size={20} className="text-gray-500" />;
+  }
+};
+
 export function DailyFortune({ userProfile }: DailyFortuneProps) {
-  const [fortune, setFortune] = useState<any>(null);
+  const [fortune, setFortune] = useState<DailyFortune | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Simulate loading process
-    setTimeout(() => {
-      const dailyFortune = generateDailyFortune(userProfile);
-      setFortune(dailyFortune);
-      setIsLoading(false);
-    }, 2000);
+    getDailyFortuneFromAPI();
   }, [userProfile]);
 
-  const refreshFortune = () => {
-    setIsLoading(true);
-    setTimeout(() => {
-      const newFortune = generateDailyFortune(userProfile);
-      setFortune(newFortune);
+    const getDailyFortuneFromAPI = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      
+      const userId = localStorage.getItem('user_id');
+      if (!userId) {
+        throw new Error('用户ID不存在，请先登录');
+      }
+
+      // 先尝试获取今日运势，如果不存在则自动生成
+      const response = await DailyFortuneApiService.getTodayFortune(userId);
+      
+      setFortune(response);
       setIsLoading(false);
-    }, 1500);
+    } catch (err) {
+      console.error('获取运势失败:', err);
+      setError(err instanceof Error ? err.message : '获取运势失败');
+      setIsLoading(false);
+    }
+  };
+
+  const refreshFortune = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      
+      const userId = localStorage.getItem('user_id');
+      if (!userId) {
+        throw new Error('用户ID不存在，请先登录');
+      }
+
+      // 刷新时主动生成新的运势
+      const response = await DailyFortuneApiService.generateDailyFortune({
+        user_id: userId,
+        user_profile: {
+          gender: (userProfile.gender || 'other') as 'male' | 'female' | 'other',
+          birth_date: userProfile.birthDate || '',
+          birth_time: userProfile.birthTime || '12:00',
+          birth_location: userProfile.birthLocation || ''
+        }
+      });
+      
+      setFortune(response);
+      setIsLoading(false);
+    } catch (err) {
+      console.error('刷新运势失败:', err);
+      setError(err instanceof Error ? err.message : '刷新运势失败');
+      setIsLoading(false);
+    }
   };
 
   const formatDate = () => {
@@ -211,6 +263,39 @@ export function DailyFortune({ userProfile }: DailyFortuneProps) {
     );
   }
 
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-[#F8F5F0] to-[#E7A5A0]/20 flex flex-col items-center justify-center px-8">
+        <div className="text-center">
+          <h3 className="text-2xl text-red-600 mb-4 font-['Playfair_Display']">
+            运势生成失败
+          </h3>
+          <p className="text-[#6E6259] mb-6">
+            {error}
+          </p>
+          <Button onClick={refreshFortune} className="bg-[#7BAEA5] hover:bg-[#6A9B91]">
+            重试
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!fortune) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-[#F8F5F0] to-[#E7A5A0]/20 flex flex-col items-center justify-center px-8">
+        <div className="text-center">
+          <h3 className="text-2xl text-[#6E6259] mb-4 font-['Playfair_Display']">
+            暂无运势数据
+          </h3>
+          <Button onClick={refreshFortune} className="bg-[#7BAEA5] hover:bg-[#6A9B91]">
+            生成运势
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#F8F5F0] to-white px-6 py-8 pb-24">
       <div className="max-w-md mx-auto">
@@ -275,10 +360,10 @@ export function DailyFortune({ userProfile }: DailyFortuneProps) {
               className="space-y-3"
             >
               <div className="text-lg text-[#2B3A55] font-['Playfair_Display'] tracking-wide text-[24px]">
-                The Creative
+                {fortune.hexagram.title}
               </div>
               <div className="text-4xl text-[#2B3A55] font-['Playfair_Display'] mb-2 text-[28px]">
-                乾
+                {fortune.hexagram.name}
               </div>
               <div className="text-lg text-[#6E6259] font-medium mb-3 mt-[30px]">
                 Overall Fortune
@@ -294,20 +379,20 @@ export function DailyFortune({ userProfile }: DailyFortuneProps) {
             >
               <div className="flex items-center gap-2">
                 <div className={`w-24 h-3 rounded-full bg-gradient-to-r ${
-                  fortune.overall >= 80 ? 'from-green-400 to-green-600' :
-                  fortune.overall >= 60 ? 'from-blue-400 to-blue-600' :
-                  fortune.overall >= 40 ? 'from-yellow-400 to-yellow-600' :
+                  fortune.hexagram.luck >= 80 ? 'from-green-400 to-green-600' :
+                  fortune.hexagram.luck >= 60 ? 'from-blue-400 to-blue-600' :
+                  fortune.hexagram.luck >= 40 ? 'from-yellow-400 to-yellow-600' :
                   'from-orange-400 to-orange-600'
                 }`}>
                   <motion.div
                     initial={{ width: 0 }}
-                    animate={{ width: `${fortune.overall}%` }}
+                    animate={{ width: `${fortune.hexagram.luck}%` }}
                     transition={{ delay: 1.3, duration: 1.5 }}
                     className="h-full bg-white/30 rounded-full"
                   />
                 </div>
                 <span className="text-sm font-medium text-[#2B3A55]">
-                  {fortune.overall}%
+                  {fortune.hexagram.luck}%
                 </span>
               </div>
             </motion.div>
@@ -316,7 +401,7 @@ export function DailyFortune({ userProfile }: DailyFortuneProps) {
 
         {/* Time-based Advice */}
         <div className="space-y-4 mb-6">
-          {fortune.timeAdvice.map((timeSlot: any, index: number) => (
+          {fortune.time_advice.map((timeSlot: any, index: number) => (
             <motion.div
               key={index}
               initial={{ x: -20, opacity: 0 }}
@@ -326,7 +411,7 @@ export function DailyFortune({ userProfile }: DailyFortuneProps) {
               <Card className="p-4 bg-white/80 backdrop-blur-sm border-[#E7A5A0]/20">
                 <div className="flex items-start gap-4">
                   <div className="flex-shrink-0 mt-1">
-                    {timeSlot.icon}
+                    {getTimePeriodIcon(timeSlot.period)}
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
@@ -366,21 +451,21 @@ export function DailyFortune({ userProfile }: DailyFortuneProps) {
                   <span className="text-2xl">🎨</span>
                 </div>
                 <p className="text-sm text-[#6E6259] mb-1">Lucky Color</p>
-                <p className="font-medium text-[#2B3A55]">{fortune.luckyColor}</p>
+                <p className="font-medium text-[#2B3A55]">{fortune.lucky_elements.color}</p>
               </div>
               <div className="text-center">
                 <div className="w-12 h-12 bg-[#E7A5A0]/20 rounded-full flex items-center justify-center mx-auto mb-2">
                   <span className="text-2xl">🧭</span>
                 </div>
                 <p className="text-sm text-[#6E6259] mb-1">Lucky Direction</p>
-                <p className="font-medium text-[#2B3A55]">{fortune.luckyDirection}</p>
+                <p className="font-medium text-[#2B3A55]">{fortune.lucky_elements.direction}</p>
               </div>
               <div className="text-center">
                 <div className="w-12 h-12 bg-[#6E6259]/20 rounded-full flex items-center justify-center mx-auto mb-2">
                   <span className="text-2xl">🔢</span>
                 </div>
                 <p className="text-sm text-[#6E6259] mb-1">Lucky Number</p>
-                <p className="font-medium text-[#2B3A55]">{fortune.luckyNumber}</p>
+                <p className="font-medium text-[#2B3A55]">{fortune.lucky_elements.number}</p>
               </div>
               <div className="text-center">
                 <div className="w-12 h-12 bg-[#7BAEA5]/20 rounded-full flex items-center justify-center mx-auto mb-2">
@@ -404,7 +489,7 @@ export function DailyFortune({ userProfile }: DailyFortuneProps) {
               📿 Daily Mantra
             </h4>
             <p className="text-[#6E6259] leading-relaxed italic font-['Playfair_Display'] whitespace-pre-wrap break-words">
-              "{fortune.mantra}"
+              "Today's energy brings {fortune.hexagram.energy} - embrace the wisdom of {fortune.hexagram.name}"
             </p>
           </Card>
         </motion.div>
@@ -420,18 +505,15 @@ export function DailyFortune({ userProfile }: DailyFortuneProps) {
               💫 Personal Guidance
             </h4>
             <div className="space-y-3">
-              {fortune.advice.map((advice: string, index: number) => (
-                <motion.div
-                  key={index}
-                  initial={{ x: -20, opacity: 0 }}
-                  animate={{ x: 0, opacity: 1 }}
-                  transition={{ delay: 2.1 + (index * 0.2) }}
-                  className="flex items-start gap-3"
-                >
-                  <div className="w-2 h-2 bg-[#7BAEA5] rounded-full mt-2 flex-shrink-0"></div>
-                  <p className="text-[#6E6259] leading-relaxed">{advice}</p>
-                </motion.div>
-              ))}
+              <motion.div
+                initial={{ x: -20, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ delay: 2.1 }}
+                className="flex items-start gap-3"
+              >
+                <div className="w-2 h-2 bg-[#7BAEA5] rounded-full mt-2 flex-shrink-0"></div>
+                <p className="text-[#6E6259] leading-relaxed">{fortune.personal_advice}</p>
+              </motion.div>
             </div>
           </Card>
         </motion.div>

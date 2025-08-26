@@ -288,7 +288,10 @@ export default function App() {
         <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          onClick={() => setActiveTab("heart-compass")}
+          onClick={() => {
+            setActiveTab("heart-compass");
+            setCurrentScreen("main-app");
+          }}
           className={`flex flex-col items-center gap-1 px-4 py-2 rounded-lg transition-colors ${
             activeTab === "heart-compass"
               ? "text-[#7BAEA5] bg-[#7BAEA5]/10"
@@ -304,7 +307,10 @@ export default function App() {
         <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          onClick={() => setActiveTab("daily-fortune")}
+          onClick={() => {
+            setActiveTab("daily-fortune");
+            setCurrentScreen("main-app");
+          }}
           className={`flex flex-col items-center gap-1 px-4 py-2 rounded-lg transition-colors ${
             activeTab === "daily-fortune"
               ? "text-[#E7A5A0] bg-[#E7A5A0]/10"
@@ -320,7 +326,15 @@ export default function App() {
         <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          onClick={() => setActiveTab("personal-blueprint")}
+          onClick={() => {
+            setActiveTab("personal-blueprint");
+            // 如果当前在blueprint-report页面且点击Personal Blueprint，保持在blueprint-report页面
+            if (currentScreen === "blueprint-report") {
+              // 保持在blueprint-report页面
+            } else {
+              setCurrentScreen("main-app");
+            }
+          }}
           className={`flex flex-col items-center gap-1 px-4 py-2 rounded-lg transition-colors ${
             activeTab === "personal-blueprint"
               ? "text-[#2B3A55] bg-[#2B3A55]/10"
