@@ -100,6 +100,11 @@ export default function App() {
             birthLocation: user_profile.birth_location
           });
           
+          // 如果用户有蓝图数据，从后端获取
+          if (userStatusResponse.data.has_blueprint && savedUserId) {
+            await loadExistingUserBlueprintData(savedUserId);
+          }
+          
           setCurrentScreen("main-app");
         } else {
           // 新用户，进入注册流程
@@ -116,6 +121,46 @@ export default function App() {
       setCurrentScreen("onboarding");
     } finally {
       setIsInitializing(false);
+    }
+  };
+
+  // 从后端获取老用户的已有蓝图数据
+  const loadExistingUserBlueprintData = async (userId: string): Promise<void> => {
+    try {
+      console.log('🔧 从后端获取老用户的蓝图数据，用户ID:', userId);
+      console.log('🔧 调用GET /api/v1/blueprint/' + userId + ' 接口...');
+      
+      // 调用获取蓝图数据的API
+      const response = await fetch(`http://localhost:8000/api/v1/blueprint/${userId}`, {
+        method: 'GET',
+        headers: { 
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const blueprintResponse = await response.json();
+      
+      if (blueprintResponse.success && blueprintResponse.data) {
+        console.log('🎉 成功获取老用户蓝图数据:', blueprintResponse.data);
+        
+        // 设置五行数据（来自quick_data部分）
+        if (blueprintResponse.data.quick_data) {
+          setElementalData(blueprintResponse.data);
+        }
+        
+        // 设置完整蓝图数据
+        setCompleteBlueprintData(blueprintResponse.data);
+      } else {
+        console.warn('⚠️ 获取蓝图数据失败或数据为空');
+      }
+      
+    } catch (error) {
+      console.error('❌ 获取老用户蓝图数据失败:', error);
+      // 如果获取失败，用户仍然可以正常使用应用，只是显示默认数据
     }
   };
 
@@ -332,6 +377,8 @@ export default function App() {
           onViewBlueprint={() =>
             setCurrentScreen("blueprint-report")
           }
+          elementalData={elementalData}
+          completeBlueprintData={completeBlueprintData}
         />
       )}
       <BottomNavigation />
@@ -409,7 +456,11 @@ export default function App() {
               title="Back"
             />
             <div className="pb-20">
-              <BlueprintReport onBack={handleBackToMain} />
+              <BlueprintReport 
+                onBack={handleBackToMain} 
+                elementalData={elementalData}
+                completeBlueprintData={completeBlueprintData}
+              />
             </div>
             {shouldShowBottomNav && <BottomNavigation />}
           </div>

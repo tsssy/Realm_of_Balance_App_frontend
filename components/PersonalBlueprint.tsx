@@ -11,9 +11,46 @@ interface UserProfile {
   birthLocation?: string;
 }
 
+interface ElementalData {
+  quick_data?: {
+    core_energy_field?: {
+      chart_data?: Array<{
+        axis: string; // "金 | Metal" format
+        value: number;
+      }>;
+    };
+  };
+}
+
+interface GrowthAreas {
+  title: string;
+  analysis: string;
+}
+
+interface BalancePath {
+  title: string;
+  suggestions: string[];
+}
+
+interface BlueprintData {
+  growth_areas?: GrowthAreas;
+  balance_path?: BalancePath;
+  inner_blueprint?: {
+    growth_areas?: GrowthAreas & {
+      balance_path?: BalancePath;
+    };
+    [key: string]: any;
+  };
+  life_journey?: {
+    [key: string]: any;
+  };
+}
+
 interface PersonalBlueprintProps {
   userProfile: UserProfile;
   onViewBlueprint: () => void;
+  elementalData?: ElementalData;
+  completeBlueprintData?: BlueprintData;
 }
 
 const getGenderDisplay = (gender?: string) => {
@@ -24,22 +61,80 @@ const getGenderDisplay = (gender?: string) => {
   }
 };
 
-const getElementalProfile = (userProfile: UserProfile) => {
-  // Simplified Five Elements analysis based on birth information
-  const elements = [
-    { name: 'Wood', nameZh: '木', strength: 85, color: '#7BAEA5' },
-    { name: 'Fire', nameZh: '火', strength: 92, color: '#E7A5A0' },
-    { name: 'Earth', nameZh: '土', strength: 67, color: '#6E6259' },
-    { name: 'Metal', nameZh: '金', strength: 74, color: '#2B3A55' },
-    { name: 'Water', nameZh: '水', strength: 88, color: '#7BAEA5' }
-  ];
-  
-  return elements.sort((a, b) => b.strength - a.strength);
+// 获取元素描述
+const getElementDescription = (elementName: string) => {
+  const descriptions: { [key: string]: string } = {
+    'Fire': "Your Fire element burns brightest, representing passion, intuition, and transformative power. You possess natural leadership abilities and the gift to inspire others.",
+    'Wood': "Your Wood element thrives with vitality, symbolizing growth, creativity, and life force. You have powerful adaptability and innovative spirit.",
+    'Earth': "Your Earth element is stable and grounding, representing acceptance, stability, and nurturing. You are a natural builder and protector.",
+    'Metal': "Your Metal element is sharp and precise, symbolizing rationality, decisiveness, and transformation. You possess keen insight and unwavering will.",
+    'Water': "Your Water element flows with wisdom, representing intuition, adaptability, and depth. You have profound insight and flexible thinking."
+  };
+  return descriptions[elementName] || "Your dominant element guides your unique path through life.";
 };
 
-export function PersonalBlueprint({ userProfile, onViewBlueprint }: PersonalBlueprintProps) {
+export function PersonalBlueprint({ userProfile, onViewBlueprint, elementalData, completeBlueprintData }: PersonalBlueprintProps) {
   const genderInfo = getGenderDisplay(userProfile.gender);
-  const elementalProfile = getElementalProfile(userProfile);
+
+  // 添加详细的调试信息
+  console.log('🔧 PersonalBlueprint组件接收到的数据:');
+  console.log('  - userProfile:', userProfile);
+  console.log('  - elementalData:', elementalData);
+  console.log('  - elementalData存在:', !!elementalData);
+  console.log('  - quick_data存在:', !!elementalData?.quick_data);
+  console.log('  - core_energy_field存在:', !!elementalData?.quick_data?.core_energy_field);
+  console.log('  - chart_data存在:', !!elementalData?.quick_data?.core_energy_field?.chart_data);
+  console.log('  - chart_data内容:', elementalData?.quick_data?.core_energy_field?.chart_data);
+  console.log('  - completeBlueprintData:', completeBlueprintData);
+  console.log('  - completeBlueprintData存在:', !!completeBlueprintData);
+  console.log('  - inner_blueprint存在:', !!completeBlueprintData?.inner_blueprint);
+  console.log('  - inner_blueprint.growth_areas存在:', !!completeBlueprintData?.inner_blueprint?.growth_areas);
+  console.log('  - inner_blueprint.growth_areas内容:', completeBlueprintData?.inner_blueprint?.growth_areas);
+
+  // 使用真实数据或默认数据
+  const getRealElementalData = () => {
+    if (elementalData && elementalData.quick_data?.core_energy_field?.chart_data) {
+      console.log('🔧 PersonalBlueprint使用真实数据:', elementalData);
+      
+      // 定义五行映射
+      const elementMapping: { [key: string]: { name: string; nameZh: string; color: string; icon: string } } = {
+        '金 | Metal': { name: 'Metal', nameZh: '金', color: '#2B3A55', icon: '⚔️' },
+        '木 | Wood': { name: 'Wood', nameZh: '木', color: '#7BAEA5', icon: '🌳' },
+        '水 | Water': { name: 'Water', nameZh: '水', color: '#7BAEA5', icon: '💧' },
+        '火 | Fire': { name: 'Fire', nameZh: '火', color: '#E7A5A0', icon: '🔥' },
+        '土 | Earth': { name: 'Earth', nameZh: '土', color: '#6E6259', icon: '🌍' }
+      };
+      
+      // 转换真实数据为组件需要的格式
+      const elements = elementalData.quick_data.core_energy_field.chart_data.map(item => {
+        const elementInfo = elementMapping[item.axis];
+        if (elementInfo) {
+          return {
+            name: elementInfo.name,
+            nameZh: elementInfo.nameZh,
+            strength: item.value,
+            color: elementInfo.color,
+            icon: elementInfo.icon
+          };
+        }
+        return null;
+      }).filter(Boolean).filter((item): item is NonNullable<typeof item> => item !== null);
+      
+      return elements.sort((a, b) => b.strength - a.strength);
+    }
+    
+    // 默认数据（用于fallback）
+    console.log('🔧 PersonalBlueprint使用默认数据');
+    return [
+      { name: 'Fire', nameZh: '火', strength: 92, color: '#E7A5A0', icon: '🔥' },
+      { name: 'Water', nameZh: '水', strength: 88, color: '#7BAEA5', icon: '💧' },
+      { name: 'Wood', nameZh: '木', strength: 85, color: '#7BAEA5', icon: '🌳' },
+      { name: 'Metal', nameZh: '金', strength: 74, color: '#2B3A55', icon: '⚔️' },
+      { name: 'Earth', nameZh: '土', strength: 67, color: '#6E6259', icon: '🌍' }
+    ];
+  };
+
+  const elementalProfile = getRealElementalData();
   const dominantElement = elementalProfile[0];
 
   const formatDate = (dateString?: string) => {
@@ -142,12 +237,8 @@ export function PersonalBlueprint({ userProfile, onViewBlueprint }: PersonalBlue
             </div>
             
             <div className="text-center">
-              <p className="text-[#6E6259] leading-relaxed">
-                {dominantElement.name === 'Fire' && "Your Fire element burns brightest, representing passion, intuition, and transformative power. You possess natural leadership abilities and the gift to inspire others."}
-                {dominantElement.name === 'Wood' && "Your Wood element thrives with vitality, symbolizing growth, creativity, and life force. You have powerful adaptability and innovative spirit."}
-                {dominantElement.name === 'Earth' && "Your Earth element is stable and grounding, representing acceptance, stability, and nurturing. You are a natural builder and protector."}
-                {dominantElement.name === 'Metal' && "Your Metal element is sharp and precise, symbolizing rationality, decisiveness, and transformation. You possess keen insight and unwavering will."}
-                {dominantElement.name === 'Water' && "Your Water element flows with wisdom, representing intuition, adaptability, and depth. You have profound insight and flexible thinking."}
+              <p className="text-[#6E6259] leading-relaxed whitespace-pre-wrap break-words">
+                {getElementDescription(dominantElement.name)}
               </p>
             </div>
           </Card>
@@ -200,7 +291,7 @@ export function PersonalBlueprint({ userProfile, onViewBlueprint }: PersonalBlue
           </Card>
         </motion.div>
 
-        {/* Life Insights */}
+        {/* Life Insights - 使用Growth Areas数据 */}
         <motion.div
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
@@ -208,31 +299,69 @@ export function PersonalBlueprint({ userProfile, onViewBlueprint }: PersonalBlue
         >
           <Card className="p-6 mb-6 bg-gradient-to-br from-[#2B3A55]/5 to-white border-[#2B3A55]/10">
             <h3 className="text-lg text-[#2B3A55] mb-4 font-medium">
-              🌟 Life Insights
+              🌱 成长挑战 | Growth Areas
             </h3>
             
-            <div className="space-y-4">
+            {/* 如果有完整蓝图数据，使用Growth Areas；否则使用默认内容 */}
+            {completeBlueprintData?.inner_blueprint?.growth_areas ? (
               <div>
-                <h4 className="text-sm font-medium text-[#2B3A55] mb-2">Core Gifts</h4>
-                <p className="text-[#6E6259] text-sm leading-relaxed">
-                  Powerful intuition and emotional resonance abilities. You can deeply understand others' inner worlds and possess natural healing and inspiring capabilities.
+                <p className="text-[#6E6259] leading-relaxed whitespace-pre-wrap break-words mb-4">
+                  {completeBlueprintData.inner_blueprint.growth_areas.analysis}
                 </p>
+                
+                {/* 如果有Balance Path数据，也显示出来 */}
+                {completeBlueprintData.inner_blueprint.growth_areas.balance_path && (
+                  <div>
+                    <h4 className="text-sm font-medium text-[#2B3A55] mb-2">
+                      {completeBlueprintData.inner_blueprint.growth_areas.balance_path.title}
+                    </h4>
+                    <div className="space-y-2">
+                      {completeBlueprintData.inner_blueprint.growth_areas.balance_path.suggestions.map((suggestion: string, index: number) => (
+                        <div key={index} className="flex items-start gap-3">
+                          <div className="w-2 h-2 bg-[#7BAEA5] rounded-full mt-2 flex-shrink-0"></div>
+                          <p className="text-[#6E6259] leading-relaxed whitespace-pre-wrap break-words">
+                            {suggestion}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
-              
+            ) : (
+              // 默认内容作为fallback
               <div>
-                <h4 className="text-sm font-medium text-[#2B3A55] mb-2">Growth Challenges</h4>
-                <p className="text-[#6E6259] text-sm leading-relaxed">
-                  Learn to find balance between passion and rationality. Cultivate patience and practical planning abilities to harmonize ideals with reality.
+                <p className="text-[#6E6259] leading-relaxed mb-4">
+                  你的能量场中，木元素和火元素相对稀缺，这可能导致你在开创性思维、灵活变通以及热情表达方面面临一些挑战。积极培养这些方面，将助你生命之树枝繁叶茂，充满活力。
                 </p>
+                
+                <div>
+                  <h4 className="text-sm font-medium text-[#2B3A55] mb-2">
+                    平衡之道 | Path to Balance
+                  </h4>
+                  <div className="space-y-2">
+                    <div className="flex items-start gap-3">
+                      <div className="w-2 h-2 bg-[#7BAEA5] rounded-full mt-2 flex-shrink-0"></div>
+                      <p className="text-[#6E6259] leading-relaxed">
+                        多接触大自然，培养园艺或艺术爱好，激发内在的创造力与生命力。
+                      </p>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <div className="w-2 h-2 bg-[#7BAEA5] rounded-full mt-2 flex-shrink-0"></div>
+                      <p className="text-[#6E6259] leading-relaxed">
+                        主动参与社交活动，表达真实情感，让内在的热情有更多展现的机会。
+                      </p>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <div className="w-2 h-2 bg-[#7BAEA5] rounded-full mt-2 flex-shrink-0"></div>
+                      <p className="text-[#6E6259] leading-relaxed">
+                        尝试瑜伽或冥想，学习放下执念，拥抱变化，培养内心的弹性与乐观。
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </div>
-              
-              <div>
-                <h4 className="text-sm font-medium text-[#2B3A55] mb-2">Life Mission</h4>
-                <p className="text-[#6E6259] text-sm leading-relaxed">
-                  Become a messenger of light and love. Through your existence and actions, bring more warmth, understanding, and wisdom to the world.
-                </p>
-              </div>
-            </div>
+            )}
           </Card>
         </motion.div>
 
