@@ -1,7 +1,7 @@
 // API配置文件
 export const API_CONFIG = {
   // 后端API基础URL
-  BASE_URL: 'http://localhost:8000',
+  BASE_URL: 'http://183.173.61.24:8000',
   
   // API版本路径
   API_V1: '/api/v1',

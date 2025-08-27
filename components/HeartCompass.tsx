@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { Heart, Send } from "lucide-react";
 import { IChing64Compass } from "./IChing64Compass";
 import { HeartCompassApiService, type HeartCompassRecord } from '../services/heartCompassApi';
+import engagedImg from '../taylor_engaged/engaged.png';
 
 interface HeartCompassProps {
   userProfile?: {
@@ -200,7 +201,7 @@ export function HeartCompass({ userProfile, onSubmit }: HeartCompassProps) {
               transition={{ delay: 2, duration: 1 }}
               className="mt-4 text-lg text-[#7BAEA5] font-medium"
             >
-              Compass points to Qián hexagram...
+              Compass points to...
             </motion.div>
           </motion.div>
         </motion.div>
@@ -236,6 +237,15 @@ export function HeartCompass({ userProfile, onSubmit }: HeartCompassProps) {
               <h3 className="text-xl text-[#2B3A55] mb-3 font-['Playfair_Display']">
                 {guidanceData.hexagram.title}
               </h3>
+              {/* Inserted image between title and quote */}
+              <div className="mb-4 flex justify-center">
+                <img
+                  src={engagedImg}
+                  alt="Engagement"
+                  className="rounded-xl shadow-md max-w-full h-auto"
+                  style={{ maxHeight: '320px' }}
+                />
+              </div>
               <p className="text-[#6E6259] italic leading-relaxed whitespace-pre-wrap break-words">
                 "{guidanceData.insight.revelation}"
               </p>
