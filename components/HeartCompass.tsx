@@ -237,7 +237,7 @@ export function HeartCompass({ userProfile, onSubmit }: HeartCompassProps) {
                 {guidanceData.hexagram.title}
               </h3>
               <p className="text-[#6E6259] italic leading-relaxed whitespace-pre-wrap break-words">
-                "{guidanceData.dialogue_flow.revelation}"
+                "{guidanceData.insight.revelation}"
               </p>
             </Card>
           </motion.div>
@@ -250,14 +250,14 @@ export function HeartCompass({ userProfile, onSubmit }: HeartCompassProps) {
           >
             <Card className="p-6 mb-6 bg-gradient-to-br from-[#7BAEA5]/10 to-white border-[#7BAEA5]/20">
               <h4 className="text-lg text-[#2B3A55] mb-4 font-medium flex items-center gap-2">
-                💬 Dialogue Flow
+                💬 Insight
               </h4>
               
               {/* Analysis */}
               <div className="space-y-3 mb-4">
                 <h5 className="font-medium text-[#2B3A55] text-sm">🔍 Analysis:</h5>
                 <p className="text-[#6E6259] leading-relaxed whitespace-pre-wrap break-words">
-                  {guidanceData.dialogue_flow.analysis}
+                  {guidanceData.insight.analysis}
                 </p>
               </div>
               
@@ -265,7 +265,7 @@ export function HeartCompass({ userProfile, onSubmit }: HeartCompassProps) {
               <div className="space-y-3 mb-4">
                 <h5 className="font-medium text-[#2B3A55] text-sm">🧭 Guidance:</h5>
                 <p className="text-[#6E6259] leading-relaxed whitespace-pre-wrap break-words">
-                  {guidanceData.dialogue_flow.guidance}
+                  {guidanceData.insight.guidance}
                 </p>
               </div>
               
@@ -273,7 +273,7 @@ export function HeartCompass({ userProfile, onSubmit }: HeartCompassProps) {
               <div className="space-y-3">
                 <h5 className="font-medium text-[#2B3A55] text-sm">💪 Encouragement:</h5>
                 <p className="text-[#6E6259] leading-relaxed whitespace-pre-wrap break-words">
-                  {guidanceData.dialogue_flow.encouragement}
+                  {guidanceData.insight.encouragement}
                 </p>
               </div>
             </Card>
@@ -347,7 +347,7 @@ export function HeartCompass({ userProfile, onSubmit }: HeartCompassProps) {
             </Card>
           </motion.div>
 
-          {/* Decision Protocol */}
+          {/* Summary */}
           <motion.div
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
@@ -355,14 +355,14 @@ export function HeartCompass({ userProfile, onSubmit }: HeartCompassProps) {
           >
             <Card className="p-6 mb-6 bg-gradient-to-br from-[#7BAEA5]/10 to-white border-[#7BAEA5]/20">
               <h4 className="text-lg text-[#2B3A55] mb-4 font-medium">
-                🎯 {guidanceData.decision_protocol.title}
+                🎯 {guidanceData.summary.title}
               </h4>
               
               {/* Situation Code */}
               <div className="space-y-3 mb-4">
                 <h5 className="font-medium text-[#2B3A55] text-sm">Situation Assessment:</h5>
                 <p className="text-[#6E6259] leading-relaxed whitespace-pre-wrap break-words">
-                  {guidanceData.decision_protocol.situation_code}
+                  {guidanceData.summary.situation_code}
                 </p>
               </div>
               
@@ -370,14 +370,14 @@ export function HeartCompass({ userProfile, onSubmit }: HeartCompassProps) {
               <div className="space-y-3 mb-4">
                 <h5 className="font-medium text-[#2B3A55] text-sm">Core Strategy:</h5>
                 <p className="text-[#6E6259] leading-relaxed whitespace-pre-wrap break-words">
-                  {guidanceData.decision_protocol.core_strategy}
+                  {guidanceData.summary.core_strategy}
                 </p>
               </div>
               
               {/* Action Guide Steps */}
               <div className="space-y-3">
                 <h5 className="font-medium text-[#2B3A55] text-sm">Action Steps:</h5>
-                {guidanceData.decision_protocol.action_guide.map((step: string, index: number) => (
+                {guidanceData.summary.action_guide.map((step: string, index: number) => (
                   <motion.div
                     key={index}
                     initial={{ x: -20, opacity: 0 }}

@@ -16,7 +16,7 @@ export interface Hexagram {
   focus_yao: FocusYao; // 焦点爻辞
 }
 
-export interface DialogueFlow {
+export interface Insight {
   revelation: string; // 启示 - 短诗或箴言
   analysis: string; // 分析 - 基于象辞的处境分析
   guidance: string; // 指引 - 行动方向或心态建议
@@ -37,8 +37,8 @@ export interface ActionGuide {
   inspirational_message: string; // 激励话语
 }
 
-export interface DecisionProtocol {
-  title: string; // 固定标题
+export interface Summary {
+  title: string; // 固定标题，应为 "Summary"
   situation_code: string; // 情境代码 (如 '乾卦 (#1)')
   core_strategy: string; // 核心策略 (四字短语)
   action_guide: string[]; // 行动指南 (2-3条具体建议)
@@ -49,10 +49,10 @@ export interface HeartCompassRecord {
   user_id: string;
   question: string; // 用户问题/困惑文本
   hexagram: Hexagram; // 对应的卦象信息
-  dialogue_flow: DialogueFlow; // 对话流 (四个环节)
+  insight: Insight; // 洞察 (四个环节)
   deep_wisdom: DeepWisdom; // 深层智慧
   action_guide: ActionGuide; // 行动指南
-  decision_protocol: DecisionProtocol; // 决策协议
+  summary: Summary; // 总结
   ai_generated: string; // Gemini AI 生成的完整指导
   created_at: string;
   updated_at: string;
