@@ -1,7 +1,7 @@
 // API配置文件
 export const API_CONFIG = {
-  // 后端API基础URL
-  BASE_URL: 'http://183.173.58.195:8000',
+  // 后端API基础URL - 通过nginx反向代理访问
+  BASE_URL: window.location.origin, // 使用当前域名，nginx会代理到后端
   
   // API版本路径
   API_V1: '/api/v1',

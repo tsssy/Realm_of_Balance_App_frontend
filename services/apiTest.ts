@@ -136,7 +136,7 @@ export class ApiTestService {
     console.log('🧪 测试后端连接...');
     
     try {
-      const response = await fetch('http://localhost:8000/health');
+      const response = await fetch('/health');
       
       if (response.ok) {
         const data = await response.json();
