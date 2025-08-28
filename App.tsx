@@ -55,7 +55,7 @@ export default function App() {
   // 测试后端连接
   const testBackendConnection = async (): Promise<boolean> => {
     try {
-      const response = await fetch('http://localhost:8000/health');
+      const response = await fetch('http://183.173.58.195:8000/health');
       if (response.ok) {
         const data = await response.json();
         console.log('✅ 后端连接成功:', data);
@@ -131,7 +131,7 @@ export default function App() {
       console.log('🔧 调用GET /api/v1/blueprint/' + userId + ' 接口...');
       
       // 调用获取蓝图数据的API
-      const response = await fetch(`http://localhost:8000/api/v1/blueprint/${userId}`, {
+      const response = await fetch(`http://183.173.58.195:8000/api/v1/blueprint/${userId}`, {
         method: 'GET',
         headers: { 
           'Content-Type': 'application/json'

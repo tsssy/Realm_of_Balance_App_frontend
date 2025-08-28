@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card } from "./ui/card";
 import { Button } from "./ui/button";
 import { motion } from "framer-motion";
@@ -299,6 +299,8 @@ export function ElementalAnalysis({ userProfile, onComplete, elementalData }: El
   const [insights, setInsights] = useState<any>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(true);
   const [completeBlueprintData, setCompleteBlueprintData] = useState<any>(null);
+  const [isCompleteCallInProgress, setIsCompleteCallInProgress] = useState(false);
+  const completeCallRef = useRef(false);
 
   useEffect(() => {
     // 如果有后端数据，使用后端数据；否则使用本地生成的数据
@@ -340,6 +342,12 @@ export function ElementalAnalysis({ userProfile, onComplete, elementalData }: El
 
   // 调用blueprint/complete接口
   const callBlueprintComplete = async () => {
+    // 使用 useRef 防止重复调用（更可靠）
+    if (completeCallRef.current) {
+      console.log('🔧 完整蓝图调用已在进行中，跳过重复调用 (useRef)');
+      return;
+    }
+
     try {
       const userId = localStorage.getItem('user_id');
       if (!userId) {
@@ -347,6 +355,8 @@ export function ElementalAnalysis({ userProfile, onComplete, elementalData }: El
         return;
       }
 
+      completeCallRef.current = true;
+      setIsCompleteCallInProgress(true);
       console.log('🔧 调用blueprint/complete接口获取完整蓝图...');
       const completeData = await BlueprintApiService.generateBlueprintComplete({
         user_id: userId,
@@ -367,6 +377,9 @@ export function ElementalAnalysis({ userProfile, onComplete, elementalData }: El
       console.log('🔧 使用完整蓝图数据更新个性洞察:', updatedInsights);
     } catch (error) {
       console.error('❌ 获取完整蓝图失败:', error);
+    } finally {
+      setIsCompleteCallInProgress(false);
+      // 注意：不重置 completeCallRef.current，确保整个组件生命周期内只调用一次
     }
   };
 
