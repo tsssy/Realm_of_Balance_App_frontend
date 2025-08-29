@@ -2,7 +2,7 @@ import { Card } from "./ui/card";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import { motion } from "framer-motion";
-import { User, MapPin, Clock, Calendar, Star, ArrowRight, Edit } from "lucide-react";
+import { User, MapPin, Clock, Calendar, Star, ArrowRight } from "lucide-react";
 
 interface UserProfile {
   gender?: string;
@@ -299,7 +299,7 @@ export function PersonalBlueprint({ userProfile, onViewBlueprint, elementalData,
         >
           <Card className="p-6 mb-6 bg-gradient-to-br from-[#2B3A55]/5 to-white border-[#2B3A55]/10">
             <h3 className="text-lg text-[#2B3A55] mb-4 font-medium">
-              🌱 成长挑战 | Growth Areas
+              🎯 Growth Areas
             </h3>
             
             {/* 如果有完整蓝图数据，使用Growth Areas；否则使用默认内容 */}
@@ -380,13 +380,7 @@ export function PersonalBlueprint({ userProfile, onViewBlueprint, elementalData,
             <ArrowRight size={20} />
           </Button>
           
-          <Button
-            variant="outline"
-            className="w-full border-[#6E6259]/30 text-[#6E6259] hover:bg-[#6E6259]/10 py-3 rounded-lg transition-colors"
-          >
-            <Edit size={18} />
-            <span>Edit Personal Information</span>
-          </Button>
+
         </motion.div>
 
         {/* Decorative elements */}

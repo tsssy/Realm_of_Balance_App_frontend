@@ -471,7 +471,11 @@ export default function App() {
             />
             <div className="pb-20">
               <BlueprintReport 
-                onBack={handleBackToMain} 
+                onBack={handleBackToMain}
+                onNavigateToHeartCompass={() => {
+                  setActiveTab("heart-compass");
+                  setCurrentScreen("main-app");
+                }}
                 elementalData={elementalData}
                 completeBlueprintData={completeBlueprintData}
               />

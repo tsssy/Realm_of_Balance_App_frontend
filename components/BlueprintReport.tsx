@@ -56,11 +56,12 @@ interface BlueprintData {
 
 interface BlueprintReportProps {
   onBack: () => void;
+  onNavigateToHeartCompass?: () => void;
   elementalData?: ElementalData;
   completeBlueprintData?: BlueprintData;
 }
 
-export function BlueprintReport({ onBack, elementalData, completeBlueprintData }: BlueprintReportProps) {
+export function BlueprintReport({ onBack, onNavigateToHeartCompass, elementalData, completeBlueprintData }: BlueprintReportProps) {
   console.log('🔧 BlueprintReport接收到的数据:');
   console.log('  - elementalData:', elementalData);
   console.log('  - completeBlueprintData:', completeBlueprintData);
@@ -260,19 +261,19 @@ export function BlueprintReport({ onBack, elementalData, completeBlueprintData }
                       return [
                         <div key="tooltip-content" className="space-y-2">
                           <div className="font-medium text-[#2B3A55]">
-                            {data.year ? `${data.year}年` : data.age}
+                            {data.year ? `${data.year}` : data.age}
                           </div>
                           <div className="text-[#7BAEA5]">
-                            能量值: {value}
+                            Energy Value: {value}
                           </div>
-                          {data.description && (
-                            <div className="text-[#6E6259] text-xs leading-relaxed">
-                              {data.description}
+                          {data.iconId && (
+                            <div className="text-[#6E6259] text-xs font-medium capitalize">
+                              {data.iconId}
                             </div>
                           )}
                           {data.isTurningPoint && (
                             <div className="text-[#E7A5A0] text-xs font-medium">
-                              ✨ 转折点
+                              ✨ Turning Point
                             </div>
                           )}
                         </div>,
@@ -326,14 +327,14 @@ export function BlueprintReport({ onBack, elementalData, completeBlueprintData }
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
                       <span className="text-sm font-medium text-[#2B3A55]">
-                        {point.year ? `${point.year}年` : point.age}
+                        {point.year ? `${point.year}` : point.age}
                       </span>
                       <span className="text-xs text-[#7BAEA5]">
-                        能量值 {point.energy}
+                        Energy Value {point.energy}
                       </span>
                       {point.isTurningPoint && (
                         <span className="text-xs text-[#E7A5A0] font-medium">
-                          ✨ 转折点
+                          ✨ Turning Point
                         </span>
                       )}
                     </div>
@@ -469,7 +470,10 @@ export function BlueprintReport({ onBack, elementalData, completeBlueprintData }
           >
             Back
           </button>
-          <button className="flex-1 bg-gradient-to-r from-[#7BAEA5] to-[#E7A5A0] text-white py-3 rounded-lg font-medium hover:shadow-lg transition-shadow">
+          <button 
+            onClick={onNavigateToHeartCompass}
+            className="flex-1 bg-gradient-to-r from-[#7BAEA5] to-[#E7A5A0] text-white py-3 rounded-lg font-medium hover:shadow-lg transition-shadow"
+          >
             Explore Heart Compass
           </button>
         </motion.div>
