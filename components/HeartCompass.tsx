@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 import { Heart, Send } from "lucide-react";
 import { IChing64Compass } from "./IChing64Compass";
 import { HeartCompassApiService, type HeartCompassRecord } from '../services/heartCompassApi';
-import engagedImg from '../taylor_engaged/engaged.png';
+// import engagedImg from '../taylor_engaged/engaged.png';
 
 interface HeartCompassProps {
   userProfile?: {
@@ -240,7 +240,7 @@ export function HeartCompass({ userProfile, onSubmit }: HeartCompassProps) {
               {/* Inserted image between title and quote */}
               <div className="mb-4 flex justify-center">
                 <img
-                  src={engagedImg}
+                  src="/images/engaged.png"
                   alt="Engagement"
                   className="rounded-xl shadow-md max-w-full h-auto"
                   style={{ maxHeight: '320px' }}

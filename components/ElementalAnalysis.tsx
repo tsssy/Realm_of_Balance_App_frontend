@@ -3,7 +3,7 @@ import { Card } from "./ui/card";
 import { Button } from "./ui/button";
 import { motion } from "framer-motion";
 import { Sparkles, ArrowRight } from "lucide-react";
-import { ImageWithFallback } from './figma/ImageWithFallback';
+
 import { BlueprintApiService } from '../services/blueprintApi';
 
 interface UserProfile {
@@ -240,7 +240,7 @@ const generatePersonalityInsights = (elements: Element[], userProfile: UserProfi
 };
 
 // 原有的个性洞察生成函数
-const getPersonalityInsights = (elements: Element[], userProfile: UserProfile) => {
+const getPersonalityInsights = (elements: Element[], _userProfile: UserProfile) => {
   const dominant = elements[0];
   const secondary = elements[1];
   
@@ -299,7 +299,7 @@ export function ElementalAnalysis({ userProfile, onComplete, elementalData }: El
   const [insights, setInsights] = useState<any>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(true);
   const [completeBlueprintData, setCompleteBlueprintData] = useState<any>(null);
-  const [isCompleteCallInProgress, setIsCompleteCallInProgress] = useState(false);
+  const [, setIsCompleteCallInProgress] = useState(false);
   const completeCallRef = useRef(false);
 
   useEffect(() => {
@@ -492,8 +492,7 @@ export function ElementalAnalysis({ userProfile, onComplete, elementalData }: El
 
   const steps = [
     'elemental-overview',
-    'personality-insights',
-    'life-guidance'
+    'personality-insights'
   ];
 
   const renderCurrentStep = () => {
@@ -675,70 +674,7 @@ export function ElementalAnalysis({ userProfile, onComplete, elementalData }: El
           </div>
         );
 
-      case 'life-guidance':
-        return (
-          <div className="space-y-6">
-            <motion.div
-              initial={{ y: -20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              className="text-center mb-8"
-            >
-              <h2 className="text-3xl text-[#2B3A55] mb-3 font-['Playfair_Display']">
-                Life Guidance
-              </h2>
-              <p className="text-[#6E6259]">
-                Life recommendations based on your unique elemental combination
-              </p>
-            </motion.div>
 
-            <div className="space-y-4">
-              <motion.div
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.3 }}
-              >
-                <Card className="p-6 bg-gradient-to-br from-[#2B3A55]/5 to-white border-[#2B3A55]/10">
-                  <h3 className="text-lg text-[#2B3A55] mb-3 font-medium text-[20px]">
-                    🛤️ Life Path
-                  </h3>
-                  <p className="text-[#6E6259] leading-relaxed mb-4">
-                    {insights.lifePath}
-                  </p>
-                </Card>
-              </motion.div>
-
-              <motion.div
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.5 }}
-              >
-                <Card className="p-6 bg-gradient-to-br from-[#E7A5A0]/10 to-white border-[#E7A5A0]/20">
-                  <h3 className="text-lg text-[#2B3A55] mb-3 font-medium text-[20px]">
-                    💼 Career Direction
-                  </h3>
-                  <p className="text-[#6E6259] leading-relaxed">
-                    {insights.career}
-                  </p>
-                </Card>
-              </motion.div>
-
-              <motion.div
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.7 }}
-              >
-                <Card className="p-6 bg-gradient-to-br from-[#7BAEA5]/10 to-white border-[#7BAEA5]/20">
-                  <h3 className="text-lg text-[#2B3A55] mb-3 font-medium text-[20px]">
-                    💕 Relationship Patterns
-                  </h3>
-                  <p className="text-[#6E6259] leading-relaxed">
-                    {insights.relationships}
-                  </p>
-                </Card>
-              </motion.div>
-            </div>
-          </div>
-        );
 
       default:
         return null;
