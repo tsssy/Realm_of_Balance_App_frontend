@@ -1,7 +1,10 @@
 // API配置文件
 export const API_CONFIG = {
-  // 后端API基础URL - 通过nginx反向代理访问
-  BASE_URL: window.location.origin, // 使用当前域名，nginx会代理到后端
+  // 后端API基础URL - 本地开发环境
+  BASE_URL: 'http://localhost:8000', // 本地开发直连后端
+  
+  // 生产环境配置（注释保留）
+  // BASE_URL: window.location.origin, // 使用当前域名，nginx会代理到后端
   
   // API版本路径
   API_V1: '/api/v1',
@@ -87,9 +90,11 @@ export const ENV_CONFIG = {
 // 根据环境动态设置API URL
 export const getApiBaseUrl = () => {
   if (ENV_CONFIG.IS_DEV) {
-    return API_CONFIG.BASE_URL;
+    // 本地开发环境直接连接本地后端
+    return 'http://localhost:8000';
   }
   
-  // 生产环境可以配置不同的URL
+  // 生产环境使用nginx代理
+  // return window.location.origin;
   return API_CONFIG.BASE_URL;
 };
