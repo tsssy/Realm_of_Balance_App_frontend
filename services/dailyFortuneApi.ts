@@ -1,5 +1,5 @@
 import httpClient from './httpClient';
-import { API_ENDPOINTS } from '../config/api';
+import { API_ENDPOINTS, API_CONFIG } from '../config/api';
 import { UserProfile } from './userApi';
 
 // Daily Fortune相关类型定义
@@ -74,7 +74,10 @@ export class DailyFortuneApiService {
    */
   static async generateDailyFortune(request: DailyFortuneRequest): Promise<DailyFortune> {
     try {
-      const response = await httpClient.post(API_ENDPOINTS.DAILY_FORTUNE.GENERATE, request);
+      const url = `${API_CONFIG.KIMI_BASE_URL}${API_ENDPOINTS.DAILY_FORTUNE.GENERATE}`;
+      const response = await httpClient.post(url, request, {
+        baseURL: '' // 覆盖默认baseURL以使用完整URL
+      });
       return response.data.data;
     } catch (error) {
       console.error('生成运势失败:', error);
@@ -89,7 +92,10 @@ export class DailyFortuneApiService {
    */
   static async getTodayFortune(userId: string): Promise<DailyFortune> {
     try {
-      const response = await httpClient.get(API_ENDPOINTS.DAILY_FORTUNE.TODAY(userId));
+      const url = `${API_CONFIG.KIMI_BASE_URL}${API_ENDPOINTS.DAILY_FORTUNE.TODAY(userId)}`;
+      const response = await httpClient.get(url, {
+        baseURL: '' // 覆盖默认baseURL以使用完整URL
+      });
       return response.data.data;
     } catch (error) {
       console.error('获取今日运势失败:', error);
@@ -114,8 +120,10 @@ export class DailyFortuneApiService {
       if (startDate) params.start_date = startDate;
       if (endDate) params.end_date = endDate;
       
-      const response = await httpClient.get(API_ENDPOINTS.DAILY_FORTUNE.HISTORY(userId), {
-        params
+      const url = `${API_CONFIG.KIMI_BASE_URL}${API_ENDPOINTS.DAILY_FORTUNE.HISTORY(userId)}`;
+      const response = await httpClient.get(url, {
+        params,
+        baseURL: '' // 覆盖默认baseURL以使用完整URL
       });
       return response.data;
     } catch (error) {
@@ -132,7 +140,10 @@ export class DailyFortuneApiService {
    */
   static async getFortuneByDate(userId: string, date: string): Promise<DailyFortune> {
     try {
-      const response = await httpClient.get(API_ENDPOINTS.DAILY_FORTUNE.BY_DATE(userId, date));
+      const url = `${API_CONFIG.KIMI_BASE_URL}${API_ENDPOINTS.DAILY_FORTUNE.BY_DATE(userId, date)}`;
+      const response = await httpClient.get(url, {
+        baseURL: '' // 覆盖默认baseURL以使用完整URL
+      });
       return response.data.data;
     } catch (error) {
       console.error('获取指定日期运势失败:', error);
@@ -151,7 +162,10 @@ export class DailyFortuneApiService {
     date: string
   ): Promise<{ success: boolean; message: string }> {
     try {
-      const response = await httpClient.delete(API_ENDPOINTS.DAILY_FORTUNE.DELETE_BY_DATE(userId, date));
+      const url = `${API_CONFIG.KIMI_BASE_URL}${API_ENDPOINTS.DAILY_FORTUNE.DELETE_BY_DATE(userId, date)}`;
+      const response = await httpClient.delete(url, {
+        baseURL: '' // 覆盖默认baseURL以使用完整URL
+      });
       return response.data;
     } catch (error) {
       console.error('删除指定日期运势失败:', error);

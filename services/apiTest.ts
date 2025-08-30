@@ -1,7 +1,7 @@
 // API服务测试文件
 // 用于测试各个API服务是否正常工作
 
-import { UserApiService, HeartCompassApiService, DailyFortuneApiService, BlueprintApiService } from './index';
+import { UserApiService, HeartCompassApiService, DailyFortuneApiService, BlueprintApiService, API_CONFIG } from './index';
 
 /**
  * API服务测试类
@@ -136,7 +136,9 @@ export class ApiTestService {
     console.log('🧪 测试后端连接...');
     
     try {
-      const response = await fetch('/health');
+      const healthUrl = `${API_CONFIG.BASE_URL}/health`;
+      console.log('🔧 健康检查URL:', healthUrl);
+      const response = await fetch(healthUrl);
       
       if (response.ok) {
         const data = await response.json();

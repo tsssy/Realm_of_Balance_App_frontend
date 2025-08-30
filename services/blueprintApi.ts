@@ -1,6 +1,5 @@
 import httpClient from './httpClient';
-import { API_ENDPOINTS } from '../config/api';
-import { UserProfile } from './userApi';
+import { API_ENDPOINTS, API_CONFIG } from '../config/api';
 
 // Blueprint相关类型定义
 export interface BaziPillar {
@@ -140,7 +139,10 @@ export class BlueprintApiService {
    */
   static async generateBlueprint(request: BlueprintGenerateRequest): Promise<BlueprintResult> {
     try {
-      const response = await httpClient.post(API_ENDPOINTS.BLUEPRINT.GENERATE, request);
+      const url = `${API_CONFIG.KIMI_BASE_URL}${API_ENDPOINTS.BLUEPRINT.GENERATE}`;
+      const response = await httpClient.post(url, request, {
+        baseURL: '' // 覆盖默认baseURL以使用完整URL
+      });
       return response.data.data;
     } catch (error) {
       console.error('生成个人蓝图失败:', error);
@@ -155,7 +157,10 @@ export class BlueprintApiService {
    */
   static async getBlueprint(userId: string): Promise<BlueprintResult> {
     try {
-      const response = await httpClient.get(API_ENDPOINTS.BLUEPRINT.GET(userId));
+      const url = `${API_CONFIG.KIMI_BASE_URL}${API_ENDPOINTS.BLUEPRINT.GET(userId)}`;
+      const response = await httpClient.get(url, {
+        baseURL: '' // 覆盖默认baseURL以使用完整URL
+      });
       return response.data.data;
     } catch (error) {
       console.error('获取蓝图结果失败:', error);
@@ -174,8 +179,11 @@ export class BlueprintApiService {
     userProfile: Record<string, any>
   ): Promise<BlueprintResult> {
     try {
-      const response = await httpClient.post(API_ENDPOINTS.BLUEPRINT.REGENERATE(userId), {
+      const url = `${API_CONFIG.KIMI_BASE_URL}${API_ENDPOINTS.BLUEPRINT.REGENERATE(userId)}`;
+      const response = await httpClient.post(url, {
         user_profile: userProfile
+      }, {
+        baseURL: '' // 覆盖默认baseURL以使用完整URL
       });
       return response.data.data;
     } catch (error) {
@@ -191,7 +199,10 @@ export class BlueprintApiService {
    */
   static async deleteBlueprint(userId: string): Promise<{ success: boolean; message: string }> {
     try {
-      const response = await httpClient.delete(API_ENDPOINTS.BLUEPRINT.DELETE(userId));
+      const url = `${API_CONFIG.KIMI_BASE_URL}${API_ENDPOINTS.BLUEPRINT.DELETE(userId)}`;
+      const response = await httpClient.delete(url, {
+        baseURL: '' // 覆盖默认baseURL以使用完整URL
+      });
       return response.data;
     } catch (error) {
       console.error('删除蓝图结果失败:', error);
@@ -207,8 +218,10 @@ export class BlueprintApiService {
   static async generateBlueprintQuick(request: BlueprintGenerateRequest): Promise<BlueprintResult> {
     try {
       // 为blueprint/quick设置更长的超时时间（60秒）
-      const response = await httpClient.post(API_ENDPOINTS.BLUEPRINT.QUICK, request, {
-        timeout: 60000 // 60秒超时
+      const url = `${API_CONFIG.KIMI_BASE_URL}${API_ENDPOINTS.BLUEPRINT.QUICK}`;
+      const response = await httpClient.post(url, request, {
+        timeout: 60000, // 60秒超时
+        baseURL: '' // 覆盖默认baseURL以使用完整URL
       });
       return response.data.data;
     } catch (error) {
@@ -225,8 +238,10 @@ export class BlueprintApiService {
   static async generateBlueprintComplete(request: BlueprintGenerateRequest): Promise<BlueprintResult> {
     try {
       // 为blueprint/complete设置更长的超时时间（90秒）
-      const response = await httpClient.post(API_ENDPOINTS.BLUEPRINT.COMPLETE, request, {
-        timeout: 90000 // 90秒超时
+      const url = `${API_CONFIG.KIMI_BASE_URL}${API_ENDPOINTS.BLUEPRINT.COMPLETE}`;
+      const response = await httpClient.post(url, request, {
+        timeout: 90000, // 90秒超时
+        baseURL: '' // 覆盖默认baseURL以使用完整URL
       });
       return response.data.data;
     } catch (error) {
@@ -242,7 +257,10 @@ export class BlueprintApiService {
    */
   static async getBlueprintStatus(userId: string): Promise<BlueprintStatus> {
     try {
-      const response = await httpClient.get(API_ENDPOINTS.BLUEPRINT.STATUS(userId));
+      const url = `${API_CONFIG.KIMI_BASE_URL}${API_ENDPOINTS.BLUEPRINT.STATUS(userId)}`;
+      const response = await httpClient.get(url, {
+        baseURL: '' // 覆盖默认baseURL以使用完整URL
+      });
       return response.data.data;
     } catch (error) {
       console.error('获取蓝图状态失败:', error);

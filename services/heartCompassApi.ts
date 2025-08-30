@@ -1,5 +1,5 @@
 import httpClient from './httpClient';
-import { API_ENDPOINTS } from '../config/api';
+import { API_ENDPOINTS, API_CONFIG } from '../config/api';
 import { UserProfile } from './userApi';
 
 // Heart Compass相关类型定义
@@ -97,7 +97,10 @@ export class HeartCompassApiService {
    */
   static async seekGuidance(request: HeartCompassRequest): Promise<HeartCompassRecord> {
     try {
-      const response = await httpClient.post(API_ENDPOINTS.HEART_COMPASS.SEEK_GUIDANCE, request);
+      const url = `${API_CONFIG.KIMI_BASE_URL}${API_ENDPOINTS.HEART_COMPASS.SEEK_GUIDANCE}`;
+      const response = await httpClient.post(url, request, {
+        baseURL: '' // 覆盖默认baseURL以使用完整URL
+      });
       return response.data.data;
     } catch (error) {
       console.error('寻求指导失败:', error);
@@ -112,7 +115,10 @@ export class HeartCompassApiService {
    */
   static async askAgain(request: AskAgainRequest): Promise<HeartCompassRecord> {
     try {
-      const response = await httpClient.post(API_ENDPOINTS.HEART_COMPASS.ASK_AGAIN, request);
+      const url = `${API_CONFIG.KIMI_BASE_URL}${API_ENDPOINTS.HEART_COMPASS.ASK_AGAIN}`;
+      const response = await httpClient.post(url, request, {
+        baseURL: '' // 覆盖默认baseURL以使用完整URL
+      });
       return response.data.data;
     } catch (error) {
       console.error('重新提问失败:', error);
@@ -133,8 +139,10 @@ export class HeartCompassApiService {
     limit: number = 10
   ): Promise<HeartCompassHistoryResponse> {
     try {
-      const response = await httpClient.get(API_ENDPOINTS.HEART_COMPASS.HISTORY(userId), {
-        params: { page, limit }
+      const url = `${API_CONFIG.KIMI_BASE_URL}${API_ENDPOINTS.HEART_COMPASS.HISTORY(userId)}`;
+      const response = await httpClient.get(url, {
+        params: { page, limit },
+        baseURL: '' // 覆盖默认baseURL以使用完整URL
       });
       return response.data;
     } catch (error) {
@@ -150,7 +158,10 @@ export class HeartCompassApiService {
    */
   static async getGuidanceById(guidanceId: string): Promise<HeartCompassRecord> {
     try {
-      const response = await httpClient.get(API_ENDPOINTS.HEART_COMPASS.GET_BY_ID(guidanceId));
+      const url = `${API_CONFIG.KIMI_BASE_URL}${API_ENDPOINTS.HEART_COMPASS.GET_BY_ID(guidanceId)}`;
+      const response = await httpClient.get(url, {
+        baseURL: '' // 覆盖默认baseURL以使用完整URL
+      });
       return response.data.data;
     } catch (error) {
       console.error('获取指导记录失败:', error);
@@ -169,8 +180,10 @@ export class HeartCompassApiService {
     userId: string
   ): Promise<{ success: boolean; message: string }> {
     try {
-      const response = await httpClient.delete(API_ENDPOINTS.HEART_COMPASS.DELETE(guidanceId), {
-        params: { user_id: userId }
+      const url = `${API_CONFIG.KIMI_BASE_URL}${API_ENDPOINTS.HEART_COMPASS.DELETE(guidanceId)}`;
+      const response = await httpClient.delete(url, {
+        params: { user_id: userId },
+        baseURL: '' // 覆盖默认baseURL以使用完整URL
       });
       return response.data;
     } catch (error) {

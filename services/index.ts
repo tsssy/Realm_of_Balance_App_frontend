@@ -22,10 +22,10 @@ export { default as HeartCompassApiService } from './heartCompassApi';
 export type {
   FocusYao,
   Hexagram,
-  DialogueFlow,
+  Insight,
   DeepWisdom,
   ActionGuide,
-  DecisionProtocol,
+  Summary,
   HeartCompassRecord,
   HeartCompassRequest,
   AskAgainRequest,

@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { BlueprintApiService } from "./services/blueprintApi";
 import { UserApiService, type UserStatusResponse } from "./services/userApi";
+import { API_CONFIG } from "./config/api";
 
 type Screen =
   | "loading"
@@ -55,7 +56,14 @@ export default function App() {
   // 测试后端连接
   const testBackendConnection = async (): Promise<boolean> => {
     try {
-      const response = await fetch('/health');
+      console.log('🔧 调试信息 - API配置:', {
+        BASE_URL: API_CONFIG.BASE_URL,
+        FULL_BASE_URL: API_CONFIG.FULL_BASE_URL,
+        KIMI_BASE_URL: API_CONFIG.KIMI_BASE_URL
+      });
+      const healthUrl = `${API_CONFIG.BASE_URL}/health`;
+      console.log('🔧 健康检查URL:', healthUrl);
+      const response = await fetch(healthUrl);
       if (response.ok) {
         const data = await response.json();
         console.log('✅ 后端连接成功:', data);
@@ -128,10 +136,12 @@ export default function App() {
   const loadExistingUserBlueprintData = async (userId: string): Promise<void> => {
     try {
       console.log('🔧 从后端获取老用户的蓝图数据，用户ID:', userId);
-      console.log('🔧 调用GET /api/v1/blueprint/' + userId + ' 接口...');
+      console.log('🔧 调用GET blueprint 接口获取现有蓝图数据...');
       
-      // 调用获取蓝图数据的API
-      const response = await fetch(`/api/v1/blueprint/${userId}`, {
+      // 先尝试从Gemini版本获取（老用户可能有Gemini生成的蓝图）
+      const geminiUrl = `${API_CONFIG.FULL_BASE_URL}/blueprint/${userId}`;
+      console.log('🔧 尝试Gemini接口:', geminiUrl);
+      const response = await fetch(geminiUrl, {
         method: 'GET',
         headers: { 
           'Content-Type': 'application/json'

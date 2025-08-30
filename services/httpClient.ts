@@ -1,4 +1,4 @@
-import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios';
+import axios, { AxiosInstance, AxiosResponse, AxiosError } from 'axios';
 import { API_CONFIG } from '../config/api';
 
 // 创建axios实例
@@ -10,14 +10,11 @@ const httpClient: AxiosInstance = axios.create({
 
 // 请求拦截器
 httpClient.interceptors.request.use(
-  (config: AxiosRequestConfig) => {
+  (config) => {
     // 添加设备ID到请求头（用于用户识别）
     const deviceId = localStorage.getItem('device_id');
-    if (deviceId) {
-      config.headers = {
-        ...config.headers,
-        'Device-ID': deviceId,
-      };
+    if (deviceId && config.headers) {
+      config.headers['Device-ID'] = deviceId;
     }
     
     // 开发环境日志
@@ -124,4 +121,4 @@ export const retryRequest = async <T>(
 export default httpClient;
 
 // 导出类型
-export type { AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosError };
+export type { AxiosInstance, AxiosResponse, AxiosError };

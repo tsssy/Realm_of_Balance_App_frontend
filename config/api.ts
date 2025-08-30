@@ -1,17 +1,23 @@
 // API配置文件
 export const API_CONFIG = {
   // 后端API基础URL - 本地开发环境
-  BASE_URL: 'http://localhost:8000', // 本地开发直连后端
+  BASE_URL: 'http://localhost:8001', // 本地开发直连后端（8001端口避免与Cursor冲突）
   
   // 生产环境配置（注释保留）
   // BASE_URL: window.location.origin, // 使用当前域名，nginx会代理到后端
   
   // API版本路径
   API_V1: '/api/v1',
+  API_V2: '/api/v2',
   
   // 完整的API基础URL
   get FULL_BASE_URL() {
     return `${this.BASE_URL}${this.API_V1}`;
+  },
+  
+  // Kimi API基础URL
+  get KIMI_BASE_URL() {
+    return `${this.BASE_URL}${this.API_V2}`;
   },
   
   // 请求超时时间（毫秒）
@@ -42,33 +48,33 @@ export const API_ENDPOINTS = {
     STATUS_SUMMARY: (userId: string) => `/user/${userId}/status`,
   },
   
-  // Heart Compass相关
+  // Heart Compass相关 - Kimi版本
   HEART_COMPASS: {
-    SEEK_GUIDANCE: '/heart-compass/seek-guidance',
-    ASK_AGAIN: '/heart-compass/ask-again',
-    HISTORY: (userId: string) => `/heart-compass/${userId}/history`,
-    GET_BY_ID: (guidanceId: string) => `/heart-compass/guidance/${guidanceId}`,
-    DELETE: (guidanceId: string) => `/heart-compass/guidance/${guidanceId}`,
+    SEEK_GUIDANCE: '/kimi-heart-compass/seek-guidance',
+    ASK_AGAIN: '/kimi-heart-compass/ask-again',
+    HISTORY: (userId: string) => `/kimi-heart-compass/${userId}/history`,
+    GET_BY_ID: (guidanceId: string) => `/kimi-heart-compass/guidance/${guidanceId}`,
+    DELETE: (guidanceId: string) => `/kimi-heart-compass/guidance/${guidanceId}`,
   },
   
-  // Daily Fortune相关
+  // Daily Fortune相关 - Kimi版本
   DAILY_FORTUNE: {
-    GENERATE: '/daily-fortune/generate',
-    TODAY: (userId: string) => `/daily-fortune/${userId}/today`,
-    HISTORY: (userId: string) => `/daily-fortune/${userId}/history`,
-    BY_DATE: (userId: string, date: string) => `/daily-fortune/${userId}/date/${date}`,
-    DELETE_BY_DATE: (userId: string, date: string) => `/daily-fortune/${userId}/date/${date}`,
+    GENERATE: '/kimi-daily-fortune/generate',
+    TODAY: (userId: string) => `/kimi-daily-fortune/${userId}/today`,
+    HISTORY: (userId: string) => `/kimi-daily-fortune/${userId}/history`,
+    BY_DATE: (userId: string, date: string) => `/kimi-daily-fortune/${userId}/date/${date}`,
+    DELETE_BY_DATE: (userId: string, date: string) => `/kimi-daily-fortune/${userId}/date/${date}`,
   },
   
-  // Blueprint相关
+  // Blueprint相关 - Kimi版本
   BLUEPRINT: {
-    GENERATE: '/blueprint/generate',
-    GET: (userId: string) => `/blueprint/${userId}`,
-    REGENERATE: (userId: string) => `/blueprint/${userId}/regenerate`,
-    DELETE: (userId: string) => `/blueprint/${userId}`,
-    QUICK: '/blueprint/quick',
-    COMPLETE: '/blueprint/complete',
-    STATUS: (userId: string) => `/blueprint/${userId}/status`,
+    GENERATE: '/kimi-blueprint/generate',
+    GET: (userId: string) => `/kimi-blueprint/${userId}`,
+    REGENERATE: (userId: string) => `/kimi-blueprint/${userId}/regenerate`,
+    DELETE: (userId: string) => `/kimi-blueprint/${userId}`,
+    QUICK: '/kimi-blueprint/quick',
+    COMPLETE: '/kimi-blueprint/complete',
+    STATUS: (userId: string) => `/kimi-blueprint/${userId}/status`,
   },
   
   // 健康检查
@@ -90,8 +96,8 @@ export const ENV_CONFIG = {
 // 根据环境动态设置API URL
 export const getApiBaseUrl = () => {
   if (ENV_CONFIG.IS_DEV) {
-    // 本地开发环境直接连接本地后端
-    return 'http://localhost:8000';
+    // 本地开发环境直接连接本地后端（8001端口避免与Cursor冲突）
+    return 'http://localhost:8001';
   }
   
   // 生产环境使用nginx代理
