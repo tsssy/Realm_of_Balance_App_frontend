@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { Heart, Send } from "lucide-react";
 import { IChing64Compass } from "./IChing64Compass";
 import { HeartCompassApiService, type HeartCompassRecord } from '../services/heartCompassApi';
+import { getHexagramImage } from '../utils/hexagramImageMapping';
 // import engagedImg from '../taylor_engaged/engaged.png';
 
 interface HeartCompassProps {
@@ -240,8 +241,8 @@ export function HeartCompass({ userProfile, onSubmit }: HeartCompassProps) {
               {/* Inserted image between title and quote */}
               <div className="mb-4 flex justify-center">
                 <img
-                  src="/images/engaged.png"
-                  alt="Engagement"
+                  src={guidanceData.hexagram?.name ? getHexagramImage(guidanceData.hexagram.name) : "/images/daily_fortune_7.png"}
+                  alt={`${guidanceData.hexagram?.name || 'Hexagram'} Guidance Image`}
                   className="rounded-xl shadow-md max-w-full h-auto"
                   style={{ maxHeight: '320px' }}
                 />

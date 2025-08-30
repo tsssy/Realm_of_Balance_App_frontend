@@ -6,6 +6,7 @@ import { Calendar, Sunrise, Moon, Star, RefreshCw } from "lucide-react";
 import { IChing64Compass } from "./IChing64Compass";
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import DailyFortuneApiService, { type DailyFortune } from '../services/dailyFortuneApi';
+import { getHexagramImage } from '../utils/hexagramImageMapping';
 
 interface UserProfile {
   gender?: string;
@@ -324,48 +325,44 @@ export function DailyFortune({ userProfile }: DailyFortuneProps) {
           </motion.button>
         </motion.div>
 
-        {/* Traditional Chinese Artwork - Image Only */}
+        {/* Combined Hexagram Image and Information Card */}
         <motion.div
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ delay: 0.3 }}
-          className="mb-4"
+          className="mb-6"
         >
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
-            className="w-full rounded-xl overflow-hidden shadow-xl border-4 border-[#7BAEA5]/20"
-          >
-            <ImageWithFallback 
-              src="/images/example-image.png"
-              alt="Traditional Chinese Horse Painting" 
-              className="w-full h-80 object-cover"
-            />
-          </motion.div>
-        </motion.div>
-
-        {/* Today's Hexagram Information */}
-        <motion.div
-          initial={{ scale: 0.9, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ delay: 0.7 }}
-        >
-          <Card className="p-4 mb-6 bg-gradient-to-br from-[#7BAEA5]/10 to-white border-[#7BAEA5]/20 text-center">
+          <Card className="p-0 bg-gradient-to-br from-[#7BAEA5]/10 to-white border-[#7BAEA5]/20 overflow-hidden shadow-xl">
+            {/* Image Section */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 }}
+              className="w-full bg-gradient-to-br from-white/50 to-[#F5F5DC]/30 pt-6 pb-2 px-4"
+            >
+              <ImageWithFallback 
+                src={fortune?.hexagram?.name ? getHexagramImage(fortune.hexagram.name) : "/images/daily_fortune_7.png"}
+                alt={`${fortune?.hexagram?.name || 'Hexagram'} Fortune Image`} 
+                className="w-full h-80 object-contain"
+              />
+            </motion.div>
+            
+            {/* Information Section */}
+            <div className="px-6 pt-2 pb-4 text-center">
             {/* Text Content */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.9 }}
-              className="space-y-3"
+              className="space-y-4"
             >
-              <div className="text-lg text-[#2B3A55] font-['Playfair_Display'] tracking-wide text-[24px]">
+              <div className="text-lg text-[#2B3A55] font-['Playfair_Display'] tracking-wide text-[24px] mb-2">
                 {fortune.hexagram.title}
               </div>
-              <div className="text-4xl text-[#2B3A55] font-['Playfair_Display'] mb-2 text-[28px]">
+              <div className="text-4xl text-[#2B3A55] font-['Playfair_Display'] text-[28px] mb-4">
                 {fortune.hexagram.name}
               </div>
-              <div className="text-lg text-[#6E6259] font-medium mb-3 mt-[30px]">
+              <div className="text-lg text-[#6E6259] font-medium mb-4">
                 Overall Fortune
               </div>
             </motion.div>
@@ -375,7 +372,7 @@ export function DailyFortune({ userProfile }: DailyFortuneProps) {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 1.1 }}
-              className="flex items-center justify-center gap-3 -mt-[30px]"
+              className="flex items-center justify-center gap-3 mt-2"
             >
               <div className="flex items-center gap-2">
                 <div className={`w-24 h-3 rounded-full bg-gradient-to-r ${
@@ -396,6 +393,7 @@ export function DailyFortune({ userProfile }: DailyFortuneProps) {
                 </span>
               </div>
             </motion.div>
+            </div>
           </Card>
         </motion.div>
 
